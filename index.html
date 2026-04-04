@@ -43,6 +43,7 @@ body::before {
 @keyframes floatUp { 0% { transform: translateY(110vh) rotate(0deg); opacity: 0; } 10% { opacity: 0.15; } 90% { opacity: 0.15; } 100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; } }
 .title-logo { font-size: clamp(2.5rem, 8vw, 5rem); font-weight: 700; text-align: center; text-shadow: 0 4px 0 #cc4400, 0 8px 0 #993300, 0 12px 30px rgba(0,0,0,0.5); animation: titleBounce 2s ease-in-out infinite; margin-bottom: 10px; }
 @keyframes titleBounce { 0%, 100% { transform: translateY(0) rotate(-1deg); } 50% { transform: translateY(-10px) rotate(1deg); } }
+@keyframes titleGlow { 0% { text-shadow: 0 4px 0 #cc4400, 0 8px 0 #993300, 0 12px 30px rgba(0,0,0,0.5); } 100% { text-shadow: 0 4px 0 #cc4400, 0 8px 0 #993300, 0 12px 30px rgba(0,0,0,0.5), 0 0 40px rgba(255,107,53,0.3); } }
 .title-sub { font-size: clamp(1rem, 3vw, 1.5rem); color: var(--golden); font-weight: 500; margin-bottom: 30px; text-align: center; }
 .title-lore { max-width: 600px; text-align: center; font-family: 'Patrick Hand', cursive; font-size: 1.15rem; line-height: 1.6; color: var(--text-muted); margin-bottom: 10px; background: rgba(0,0,0,0.3); border-radius: 16px; padding: 20px 28px; border: 1px solid rgba(255,255,255,0.05); }
 .title-goal { font-size: 1.2rem; color: var(--golden); margin-bottom: 40px; text-align: center; }
@@ -72,6 +73,10 @@ body::before {
 .ai-toggle input:checked + .toggle-track { background: var(--orange); }
 .ai-toggle .toggle-thumb { width: 18px; height: 18px; border-radius: 50%; background: white; position: absolute; top: 2px; left: 2px; transition: transform 0.2s; }
 .ai-toggle input:checked + .toggle-track .toggle-thumb { transform: translateX(18px); }
+.avatar-picker { display:flex;gap:6px;margin-top:6px;flex-wrap:wrap; }
+.avatar-opt { width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.3rem;cursor:pointer;border:2px solid transparent;transition:all .2s;background:rgba(255,255,255,.05); }
+.avatar-opt:hover { background:rgba(255,255,255,.12);transform:scale(1.15); }
+.avatar-opt.selected { border-color:var(--orange);background:rgba(255,107,53,.2);transform:scale(1.2); }
 
 /* Game Screen */
 #screen-game { justify-content: flex-start; padding: 16px; min-height: 100vh; gap: 12px; }
@@ -217,17 +222,14 @@ body::before {
 <!-- TITLE SCREEN -->
 <div id="screen-title" class="screen active">
   <div class="title-float-container" id="floating-food"></div>
-  <div class="title-logo">🍳 Too Many Cooks! 🔥</div>
-  <div class="title-sub">~ La Cuisine Catastrophe ~</div>
-  <div class="title-lore">
-    It’s Saturday night at the world’s most dysfunctional restaurant.
-    The head chef quit, orders are piling up, and the health inspector arrives at midnight.<br><br>
-    Each cook is drowning in orders — draw your cards to see what fate serves up.
-    Plate a dish and send it out. Dump your mess on the next station.
-    Or challenge a rival to a <strong style="color:var(--red)">Cook-Off</strong> — and risk getting buried in tickets!
+  <div class="title-logo" style="font-size:clamp(3rem,10vw,6rem);animation:titleBounce 2s ease-in-out infinite,titleGlow 3s ease-in-out infinite alternate;">🍳 Too Many Cooks! 🔥</div>
+  <div class="title-sub">A chaotic kitchen card game</div>
+  <div class="title-lore" style="padding:14px 24px;">
+    Draw cards. Plate dishes. Dump disasters on the next chef.<br>
+    Survive the kitchen — or go down swinging in a <strong style="color:var(--red)">Cook-Off</strong>!
   </div>
   <div class="title-rules" id="title-rules"></div>
-  <div class="title-goal">🏆 First chef to clear their station wins the <strong>Golden Ladle</strong>!</div>
+  <div class="title-goal">🏁
   <button class="btn btn-primary" onclick="showScreen('setup')">START COOKING! 🔥</button>
 </div>
 
@@ -274,6 +276,7 @@ const FACE_DATA = [
   { name: 'Cook-Off', cls: 'cookoff', label: 'COOK-OFF!', color: '#EF4444' },
 ];
 const PLAYER_COLORS = ['#FF6B35','#4ECDC4','#E63946','#7209B7','#06D6A0','#F472B6'];
+const CHEF_AVATARS = ['👨‍🍳','👩‍🍳','🧑‍🍳','🤠','🦊','🐻','🐧','🐱','🦁','🐸','👾','🤖'];
 const AI_CHEFS = [
   { name: 'Bot-ardee',     quip: 'Mama mia!' },
   { name: 'Gordon RAMsey', quip: "IT'S RAW!" },
@@ -299,11 +302,11 @@ const FUNNY_PLATES = [
 ];
 
 const CARD_SVG = {
-  ticket: '<svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="9" y="6" width="26" height="34" rx="2" fill="#fff8e7" stroke="#c4a060" stroke-width="1.2" stroke-dasharray="3 2"/><rect x="12" y="10" width="14" height="2.5" rx="1" fill="#c4a060"/><rect x="12" y="15" width="20" height="1.5" rx=".75" fill="#e0cba0"/><rect x="12" y="19" width="17" height="1.5" rx=".75" fill="#e0cba0"/><rect x="12" y="23" width="20" height="1.5" rx=".75" fill="#e0cba0"/><rect x="12" y="27" width="12" height="1.5" rx=".75" fill="#e0cba0"/><circle cx="30" cy="33" r="4.5" fill="none" stroke="#c4a060" stroke-width="1.5"/><path d="M28 33 L29.5 34.8 L32.5 31.5" stroke="#c4a060" stroke-width="1.3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-  plate: '<svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg"><ellipse cx="22" cy="30" rx="15" ry="5.5" fill="#d1fae5" stroke="#34d399" stroke-width="1.5"/><ellipse cx="22" cy="28" rx="12" ry="3.5" fill="#a7f3d0"/><path d="M12 26 C12 16, 22 12, 22 12 C22 12, 32 16, 32 26" fill="#6ee7b7" stroke="#34d399" stroke-width="1.3"/><path d="M18 20 C19 18, 22 17, 22 17 C22 17, 25 18, 26 20" fill="none" stroke="#34d399" stroke-width=".8" opacity=".6"/><polygon points="10,8 11,11 14,11 11.5,13 12.5,16 10,14 7.5,16 8.5,13 6,11 9,11" fill="#F7C948"/><polygon points="34,6 34.8,8.5 37,8.5 35.2,10 36,12.5 34,11 32,12.5 32.8,10 31,8.5 33.2,8.5" fill="#F7C948" opacity=".7"/><polygon points="22,4 22.5,6 24.5,6 23,7.2 23.5,9 22,8 20.5,9 21,7.2 19.5,6 21.5,6" fill="#fbbf24" opacity=".5"/></svg>',
-  dump: '<svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="16" width="22" height="16" rx="3" fill="#c4b5fd" stroke="#a78bfa" stroke-width="1.3"/><rect x="7" y="19" width="16" height="2" rx="1" fill="#8b5cf6" opacity=".5"/><rect x="7" y="23" width="12" height="2" rx="1" fill="#8b5cf6" opacity=".4"/><rect x="7" y="27" width="14" height="2" rx="1" fill="#8b5cf6" opacity=".3"/><path d="M28 22 L38 20" stroke="#fff" stroke-width="2.5" stroke-linecap="round" opacity=".9"/><path d="M28 26 L40 24" stroke="#fff" stroke-width="2.5" stroke-linecap="round" opacity=".7"/><path d="M28 30 L37 28.5" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".5"/><path d="M36 16 L40 14 L38 20" fill="#c4b5fd" stroke="#a78bfa" stroke-width="1" stroke-linejoin="round"/></svg>',
-  cookoff: '<svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 38 L6 10" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/><path d="M30 38 L38 10" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/><path d="M6 10 L14 10 L12 6 L10 10" fill="none" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/><path d="M38 10 L30 10 L32 6 L34 10" fill="none" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/><path d="M12 38 Q17 24 22 30 Q27 22 32 38" fill="#ef4444" opacity=".7"/><path d="M16 38 Q19 28 22 32 Q25 26 28 38" fill="#f97316" opacity=".8"/><path d="M19 38 Q21 32 22 34 Q23 30 25 38" fill="#fbbf24" opacity=".9"/><circle cx="14" cy="22" r="1.5" fill="#fbbf24" opacity=".6"/><circle cx="30" cy="20" r="1.5" fill="#fbbf24" opacity=".6"/></svg>',
-  back: '<svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="6" y="6" width="32" height="32" rx="4" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.15)" stroke-width="1" stroke-dasharray="3 2"/><text x="22" y="27" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="18" font-weight="bold" font-family="Fredoka,sans-serif">?</text></svg>'
+  ticket: '<svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="10" y="24" width="24" height="14" rx="3" fill="#d4a060" stroke="#a07840" stroke-width="1"/><ellipse cx="22" cy="24" rx="12" ry="3" fill="#c49050"/><ellipse cx="22" cy="24" rx="10" ry="2.5" fill="#e8c080"/><path d="M16 22 Q16 18 18 16" stroke="#a0a0a0" stroke-width="1.5" stroke-linecap="round" fill="none" opacity=".5"/><path d="M22 21 Q22 16 24 13" stroke="#a0a0a0" stroke-width="1.5" stroke-linecap="round" fill="none" opacity=".6"/><path d="M28 22 Q28 17 26 15" stroke="#a0a0a0" stroke-width="1.5" stroke-linecap="round" fill="none" opacity=".4"/><rect x="8" y="36" width="28" height="3" rx="1.5" fill="#888" opacity=".3"/></svg>',
+  plate: '<svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg"><ellipse cx="22" cy="28" rx="16" ry="6" fill="#d1fae5" stroke="#34d399" stroke-width="1.2"/><ellipse cx="22" cy="26" rx="12" ry="4" fill="#a7f3d0"/><circle cx="22" cy="22" r="6" fill="#6ee7b7" stroke="#34d399" stroke-width="1"/><path d="M19 22 L21 24.5 L25.5 19" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10 L8 13" stroke="#F7C948" stroke-width="1.5" stroke-linecap="round"/><path d="M4 13 L9 12" stroke="#F7C948" stroke-width="1.5" stroke-linecap="round"/><path d="M38 8 L36 11" stroke="#F7C948" stroke-width="1.5" stroke-linecap="round"/><path d="M40 11 L35 10" stroke="#F7C948" stroke-width="1.5" stroke-linecap="round"/></svg>',
+  dump: '<svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 28 Q6 24 10 22 L16 20 Q18 19 20 20 L22 22" fill="#c4b5fd" stroke="#8b5cf6" stroke-width="1.2"/><ellipse cx="32" cy="26" rx="8" ry="3" fill="#ddd6fe" stroke="#a78bfa" stroke-width="1"/><rect x="28" y="20" width="8" height="6" rx="2" fill="#c4b5fd" stroke="#a78bfa" stroke-width="1"/><path d="M36 18 L40 16" stroke="#a78bfa" stroke-width="1.5" stroke-linecap="round" opacity=".8"/><path d="M37 22 L41 21" stroke="#a78bfa" stroke-width="1.5" stroke-linecap="round" opacity=".6"/><path d="M36 26 L40 26" stroke="#a78bfa" stroke-width="1.5" stroke-linecap="round" opacity=".4"/><text x="22" y="38" text-anchor="middle" fill="#8b5cf6" font-size="6" font-weight="bold" font-family="sans-serif" opacity=".6">→→</text></svg>',
+  cookoff: '<svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 36 L18 12" stroke="#fef3c7" stroke-width="2.5" stroke-linecap="round"/><path d="M32 36 L26 12" stroke="#fef3c7" stroke-width="2.5" stroke-linecap="round"/><rect x="15" y="8" width="6" height="8" rx="1.5" fill="#fef3c7" stroke="#fbbf24" stroke-width=".8" transform="rotate(-10 18 12)"/><rect x="23" y="8" width="6" height="8" rx="1.5" fill="#fef3c7" stroke="#fbbf24" stroke-width=".8" transform="rotate(10 26 12)"/><path d="M14 36 Q18 26 22 30 Q26 24 30 36" fill="#ef4444" opacity=".7"/><path d="M17 36 Q20 28 22 31 Q24 27 27 36" fill="#f97316" opacity=".8"/><path d="M19 36 Q21 31 22 33 Q23 30 25 36" fill="#fbbf24" opacity=".9"/></svg>',
+  back: '<svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="36" height="36" rx="5" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/><rect x="8" y="8" width="28" height="28" rx="3" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1" stroke-dasharray="4 3"/><text x="22" y="26" text-anchor="middle" fill="rgba(255,255,255,0.35)" font-size="16" font-weight="bold" font-family="Fredoka,sans-serif">?</text><circle cx="12" cy="12" r="2" fill="rgba(255,255,255,.06)"/><circle cx="32" cy="32" r="2" fill="rgba(255,255,255,.06)"/></svg>'
 };
 
 const MINI_CARD_SVG = {
@@ -378,8 +381,21 @@ function initSetup() {
   for(let i=0;i<selectedCount;i++){
     const row=document.createElement('div');row.className='player-row';row.style.borderLeftColor=PLAYER_COLORS[i];row.style.animationDelay=(i*0.08)+'s';
     const isFirst=i===0;const aiName=shuffledAI[i%shuffledAI.length].name;
-    row.innerHTML='<span class="chef-hat">👨‍🍳</span><input type="text" id="pname-'+i+'" placeholder="'+(isFirst?'Your name':'Chef '+(i+1))+'" value="'+(isFirst?'':aiName)+'" maxlength="16">'+(isFirst?'<span style="font-size:0.8rem;color:var(--text-muted);">YOU</span>':'<label class="ai-toggle"><input type="checkbox" id="pai-'+i+'" checked><span class="toggle-track"><span class="toggle-thumb"></span></span>AI</label>');
+    const defaultAvatar=isFirst?CHEF_AVATARS[0]:CHEF_AVATARS[11];
+    row.innerHTML='<span class="chef-hat" id="avatar-display-'+i+'" style="font-size:1.5rem;cursor:pointer;" title="Click to pick avatar">'+defaultAvatar+'</span><input type="text" id="pname-'+i+'" placeholder="'+(isFirst?'Your name':'Chef '+(i+1))+'" value="'+(isFirst?'':aiName)+'" maxlength="16">'+(isFirst?'<span style="font-size:0.8rem;color:var(--text-muted);">YOU</span>':'<label class="ai-toggle"><input type="checkbox" id="pai-'+i+'" checked><span class="toggle-track"><span class="toggle-thumb"></span></span>AI</label>')+'<input type="hidden" id="pavatar-'+i+'" value="'+defaultAvatar+'">';
     cfg.appendChild(row);
+    const picker=document.createElement('div');picker.className='avatar-picker';picker.id='avatar-picker-'+i;
+    CHEF_AVATARS.forEach(av=>{
+      const opt=document.createElement('span');opt.className='avatar-opt'+(av===defaultAvatar?' selected':'');opt.textContent=av;
+      opt.onclick=()=>{
+        picker.querySelectorAll('.avatar-opt').forEach(o=>o.classList.remove('selected'));
+        opt.classList.add('selected');
+        $('avatar-display-'+i).textContent=av;
+        $('pavatar-'+i).value=av;
+      };
+      picker.appendChild(opt);
+    });
+    row.appendChild(picker);
   }
 }
 
@@ -388,7 +404,8 @@ function startGame() {
   for(let i=0;i<selectedCount;i++){
     const nameEl=$('pname-'+i);const aiEl=$('pai-'+i);
     const name=(nameEl.value.trim()||('Chef '+(i+1)));
-    players.push({name,index:i,cubes:STARTING_CUBES,isAI:i===0?false:(aiEl?aiEl.checked:true),color:PLAYER_COLORS[i]});
+    const avatarEl=$('pavatar-'+i);const avatar=avatarEl?avatarEl.value:(i===0?CHEF_AVATARS[0]:CHEF_AVATARS[11]);
+    players.push({name,index:i,cubes:STARTING_CUBES,isAI:i===0?false:(aiEl?aiEl.checked:true),color:PLAYER_COLORS[i],avatar});
   }
   G.players=players;G.currentIndex=Math.floor(Math.random()*players.length);G.pendingMatch=null;G.turnNumber=0;
   G.stats={totalPlated:0,totalDumped:0,totalCookoffs:0,turns:0};
@@ -405,7 +422,7 @@ function renderStations() {
     const div=document.createElement('div');div.className='station'+(i===G.currentIndex?' active':'');div.id='station-'+i;
     const pc=Math.min(p.cubes,6);let pile='';
     for(let j=0;j<pc;j++){pile+='<div class="pile-card" style="left:'+(j*3)+'px;transform:rotate('+((j-pc/2)*4)+'deg);z-index:'+j+';"></div>';}
-    div.innerHTML='<style>.station:nth-child('+(i+1)+')::before{background:'+p.color+';}</style><div class="station-name"><span style="color:'+p.color+'">'+(p.isAI?'🤖':'🧑‍🍳')+'</span> '+p.name+'</div><div class="station-count" id="count-'+i+'">'+p.cubes+'<small> card'+(p.cubes!==1?'s':'')+'</small></div><div class="station-pile">'+pile+'</div>';
+    div.innerHTML='<style>.station:nth-child('+(i+1)+')::before{background:'+p.color+';}</style><div class="station-name"><span style="color:'+p.color+'">'+(p.avatar||'🧑‍🍳')+'</span> '+p.name+'</div><div class="station-count" id="count-'+i+'">'+p.cubes+'<small> card'+(p.cubes!==1?'s':'')+'</small></div><div class="station-pile">'+pile+'</div>';
     if(p.cubes===0)div.classList.add('winner');c.appendChild(div);
   });
 }
@@ -645,7 +662,7 @@ function beginTurn() {
   if(p.cubes<=0){p.cubes=0;if(G.pendingMatch)G.pendingMatch=null;victory(G.currentIndex);return;}
   G.turnNumber++;G.stats.turns++;renderStations();renderPendingIndicator();
   $('card-area').innerHTML='';$('roll-summary').innerHTML='';
-  $('turn-banner').innerHTML=(p.isAI?'🤖':'🧑‍🍳')+' <span style="color:'+p.color+'">'+p.name+"</span>'s Turn!";
+  $('turn-banner').innerHTML=(p.avatar||'🧑‍🍳')+' <span style="color:'+p.color+'">'+p.name+"</span>'s Turn!";
   $('turn-banner').style.borderColor=p.color;
   $('btn-roll').classList.remove('hidden');$('btn-continue').classList.add('hidden');
   if(p.isAI){$('btn-roll').classList.add('hidden');setStatus('🤖 '+p.name+' sizes up the kitchen...');setTimeout(()=>doRoll(),800+Math.random()*600);}
@@ -718,7 +735,7 @@ function victory(winnerIndex) {
   G.phase='victory';
   const p=getPlayer(winnerIndex);
   playSound('win');
-  $('winner-display').innerHTML='<span style="color:'+p.color+'">'+(p.isAI?'🤖':'🧑‍🍳')+' '+p.name+'</span>';
+  $('winner-display').innerHTML='<span style="color:'+p.color+'">'+(p.avatar||'🧑‍🍳')+' '+p.name+'</span>';
   $('victory-stats').innerHTML='<div class="stat-card"><div class="stat-val">'+G.stats.turns+'</div><div class="stat-label">Total Turns</div></div><div class="stat-card"><div class="stat-val">'+G.stats.totalPlated+'</div><div class="stat-label">Dishes Plated 🍽️</div></div><div class="stat-card"><div class="stat-val">'+G.stats.totalDumped+'</div><div class="stat-label">Orders Dumped 🫳</div></div><div class="stat-card"><div class="stat-val">'+G.stats.totalCookoffs+'</div><div class="stat-label">Cook-Offs 🔥</div></div>';
   const cc=$('confetti-container');cc.innerHTML='';
   const cols=['#FF6B35','#F7C948','#E63946','#10B981','#8B5CF6','#4ECDC4','#F472B6','#FFD166'];
