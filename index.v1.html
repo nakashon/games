@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🍳 Too Many Cooks!</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍳</text></svg>">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Patrick+Hand&display=swap');
+
+/* ============ RESET & BASE ============ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg-dark: #1a0a00;
+  --bg-wood: #2d1b06;
+  --bg-wood-light: #3d2b16;
+  --text-warm: #FFF8E7;
+  --text-muted: #c4a882;
+  --orange: #FF6B35;
+  --golden: #F7C948;
+  --red: #E63946;
+  --green: #10B981;
+  --purple: #8B5CF6;
+  --teal: #4ECDC4;
+  --mint: #06D6A0;
+  --pink: #F472B6;
+}
+
+body {
+  font-family: 'Fredoka', sans-serif;
+  background: linear-gradient(135deg, var(--bg-dark) 0%, #2a1508 50%, var(--bg-dark) 100%);
+  color: var(--text-warm);
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+body::before {
+  content: '';
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background-image:
+    linear-gradient(45deg, rgba(255,255,255,0.02) 25%, transparent 25%),
+    linear-gradient(-45deg, rgba(255,255,255,0.02) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, rgba(255,255,255,0.02) 75%),
+    linear-gradient(-45deg, transparent 75%, rgba(255,255,255,0.02) 75%);
+  background-size: 40px 40px;
+  pointer-events: none; z-index: 0;
+}
+
+/* ============ SCREENS ============ */
+.screen {
+  display: none; flex-direction: column; align-items: center;
+  justify-content: center; min-height: 100vh; padding: 20px;
+  position: relative; z-index: 1;
+}
+.screen.active { display: flex; }
+
+/* ============ BUTTONS ============ */
+.btn {
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 600; font-size: 1.2rem;
+  border: none; border-radius: 16px;
+  padding: 16px 40px; cursor: pointer;
+  transition: all 0.2s; position: relative;
+  text-transform: uppercase; letter-spacing: 1px;
+}
+.btn:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.4); }
+.btn:active { transform: translateY(0); }
+.btn-primary {
+  background: linear-gradient(135deg, var(--orange), #ff8c5a);
+  color: white; box-shadow: 0 4px 15px rgba(255,107,53,0.4);
+}
+.btn-primary:hover { box-shadow: 0 8px 30px rgba(255,107,53,0.6); }
+
+/* ============ TITLE SCREEN ============ */
+.title-float-container {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  overflow: hidden; pointer-events: none; z-index: 0;
+}
+.title-float {
+  position: absolute; font-size: 2rem; opacity: 0.15;
+  animation: floatUp linear infinite;
+}
+@keyframes floatUp {
+  0% { transform: translateY(110vh) rotate(0deg); opacity: 0; }
+  10% { opacity: 0.15; }
+  90% { opacity: 0.15; }
+  100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+}
+.title-logo {
+  font-size: clamp(2.5rem, 8vw, 5rem);
+  font-weight: 700; text-align: center;
+  text-shadow: 0 4px 0 #cc4400, 0 8px 0 #993300, 0 12px 30px rgba(0,0,0,0.5);
+  animation: titleBounce 2s ease-in-out infinite;
+  margin-bottom: 10px;
+}
+@keyframes titleBounce {
+  0%, 100% { transform: translateY(0) rotate(-1deg); }
+  50% { transform: translateY(-10px) rotate(1deg); }
+}
+.title-sub {
+  font-size: clamp(1rem, 3vw, 1.5rem);
+  color: var(--golden); font-weight: 500;
+  margin-bottom: 30px; text-align: center;
+}
+.title-lore {
+  max-width: 600px; text-align: center;
+  font-family: 'Patrick Hand', cursive;
+  font-size: 1.15rem; line-height: 1.6;
+  color: var(--text-muted); margin-bottom: 10px;
+  background: rgba(0,0,0,0.3); border-radius: 16px;
+  padding: 20px 28px; border: 1px solid rgba(255,255,255,0.05);
+}
+.title-goal {
+  font-size: 1.2rem; color: var(--golden);
+  margin-bottom: 40px; text-align: center;
+}
+.title-rules {
+  max-width: 550px; margin-bottom: 36px;
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.rule-card {
+  background: rgba(0,0,0,0.35); border-radius: 12px;
+  padding: 12px 16px; display: flex; align-items: center; gap: 10px;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.rule-card .rule-emoji { font-size: 1.6rem; }
+.rule-card .rule-text { font-size: 0.85rem; color: var(--text-muted); }
+.rule-card .rule-text strong { color: var(--text-warm); }
+
+/* ============ SETUP SCREEN ============ */
+#screen-setup { gap: 24px; }
+.setup-title { font-size: 2rem; font-weight: 700; }
+.count-selector { display: flex; gap: 10px; margin: 10px 0; }
+.count-btn {
+  width: 52px; height: 52px; border-radius: 50%;
+  border: 3px solid var(--bg-wood-light); background: var(--bg-wood);
+  color: var(--text-warm); font-family: 'Fredoka', sans-serif;
+  font-size: 1.3rem; font-weight: 600; cursor: pointer;
+  transition: all 0.2s;
+}
+.count-btn:hover, .count-btn.selected {
+  border-color: var(--orange);
+  background: rgba(255,107,53,0.2);
+  transform: scale(1.1);
+}
+.count-btn.selected { background: var(--orange); color: white; }
+.player-configs { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 500px; }
+.player-row {
+  display: flex; align-items: center; gap: 12px;
+  background: rgba(0,0,0,0.3); border-radius: 14px;
+  padding: 12px 16px; border-left: 4px solid var(--orange);
+  animation: slideIn 0.3s ease-out forwards;
+  opacity: 0; transform: translateX(-20px);
+}
+@keyframes slideIn {
+  to { opacity: 1; transform: translateX(0); }
+}
+.player-row .chef-hat { font-size: 1.5rem; }
+.player-row input {
+  flex: 1; background: rgba(255,255,255,0.08); border: 2px solid rgba(255,255,255,0.1);
+  border-radius: 10px; padding: 8px 12px; color: var(--text-warm);
+  font-family: 'Fredoka', sans-serif; font-size: 1rem;
+}
+.player-row input:focus { outline: none; border-color: var(--orange); }
+.ai-toggle {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 0.85rem; color: var(--text-muted); cursor: pointer;
+  user-select: none;
+}
+.ai-toggle input { display: none; }
+.ai-toggle .toggle-track {
+  width: 40px; height: 22px; border-radius: 11px;
+  background: rgba(255,255,255,0.15); position: relative;
+  transition: background 0.2s;
+}
+.ai-toggle input:checked + .toggle-track { background: var(--orange); }
+.ai-toggle .toggle-thumb {
+  width: 18px; height: 18px; border-radius: 50%;
+  background: white; position: absolute; top: 2px; left: 2px;
+  transition: transform 0.2s;
+}
+.ai-toggle input:checked + .toggle-track .toggle-thumb { transform: translateX(18px); }
+
+/* ============ GAME SCREEN ============ */
+#screen-game {
+  justify-content: flex-start; padding: 16px;
+  min-height: 100vh; gap: 12px;
+}
+.turn-banner {
+  font-size: clamp(1.2rem, 4vw, 1.8rem);
+  font-weight: 700; text-align: center;
+  padding: 10px 24px; border-radius: 16px;
+  background: rgba(0,0,0,0.4); width: 100%;
+  max-width: 800px; position: relative;
+  border: 2px solid rgba(255,255,255,0.1);
+  animation: bannerPop 0.4s ease-out;
+}
+@keyframes bannerPop {
+  0% { transform: scale(0.8); opacity: 0; }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.player-stations {
+  display: flex; flex-wrap: wrap; gap: 10px;
+  justify-content: center; width: 100%; max-width: 900px;
+}
+.station {
+  background: var(--bg-wood); border-radius: 14px;
+  padding: 12px 16px; min-width: 130px; flex: 1;
+  max-width: 200px; border: 2px solid rgba(255,255,255,0.08);
+  transition: all 0.3s; position: relative; overflow: hidden;
+}
+.station::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0;
+  height: 4px; border-radius: 14px 14px 0 0;
+}
+.station.active {
+  border-color: var(--golden);
+  box-shadow: 0 0 20px rgba(247,201,72,0.3), inset 0 0 20px rgba(247,201,72,0.05);
+  transform: translateY(-3px);
+}
+.station.active::after {
+  content: '🧑‍🍳'; position: absolute; top: -10px; right: 8px;
+  font-size: 1.4rem; animation: chefBob 1s ease-in-out infinite;
+}
+@keyframes chefBob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+.station-name {
+  font-weight: 600; font-size: 0.95rem;
+  margin-bottom: 4px; display: flex; align-items: center; gap: 6px;
+}
+.station-cubes {
+  font-size: 1.8rem; font-weight: 700;
+  display: flex; align-items: baseline; gap: 4px;
+}
+.station-cubes small { font-size: 0.75rem; font-weight: 400; color: var(--text-muted); }
+.station-cubes .cube-change {
+  font-size: 0.85rem; font-weight: 600;
+  animation: fadeSlide 1.5s ease-out forwards;
+  position: absolute; right: 12px; top: 50%;
+}
+@keyframes fadeSlide {
+  0% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-20px); }
+}
+.station.winner { border-color: var(--golden); }
+.station.winner::after { content: '🏆'; animation: none; }
+
+/* ============ KITCHEN AREA ============ */
+.kitchen-area {
+  background: rgba(0,0,0,0.3); border-radius: 20px;
+  padding: 20px; width: 100%; max-width: 800px;
+  border: 1px solid rgba(255,255,255,0.06);
+  display: flex; flex-direction: column; align-items: center;
+  min-height: 200px; position: relative;
+}
+.roll-area {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  justify-content: center; padding: 10px;
+  min-height: 70px; width: 100%;
+}
+.die {
+  width: 52px; height: 52px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.5rem; font-weight: 600;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+  animation: dieAppear 0.6s ease-out forwards;
+  opacity: 0; position: relative;
+}
+.die::after {
+  content: ''; position: absolute; top: 2px; left: 4px; right: 4px;
+  height: 40%; border-radius: 8px 8px 50% 50%;
+  background: linear-gradient(to bottom, rgba(255,255,255,0.2), transparent);
+  pointer-events: none;
+}
+@keyframes dieAppear {
+  0% { opacity: 0; transform: translateY(-40px) rotate(0deg) scale(0.5); }
+  60% { opacity: 1; transform: translateY(5px) rotate(360deg) scale(1.1); }
+  80% { transform: translateY(-3px) rotate(370deg) scale(0.95); }
+  100% { opacity: 1; transform: translateY(0) rotate(360deg) scale(1); }
+}
+.die-rolling {
+  animation: dieRolling 0.4s linear infinite !important;
+  opacity: 1 !important;
+}
+@keyframes dieRolling {
+  0% { transform: rotate(0deg) scale(1); }
+  25% { transform: rotate(90deg) scale(1.1); }
+  50% { transform: rotate(180deg) scale(1); }
+  75% { transform: rotate(270deg) scale(0.9); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+.die.ticket { background: linear-gradient(135deg, #4B5563, #6B7280); }
+.die.dump { background: linear-gradient(135deg, #7C3AED, #9F67FF); }
+.die.plate { background: linear-gradient(135deg, #059669, #10B981); }
+.die.cookoff { background: linear-gradient(135deg, #DC2626, #EF4444); }
+
+.roll-summary {
+  text-align: center; padding: 8px;
+  font-size: 1rem; min-height: 30px;
+  color: var(--text-muted);
+}
+.roll-summary span { margin: 0 6px; font-weight: 600; }
+.roll-summary .s-ticket { color: #9CA3AF; }
+.roll-summary .s-dump { color: var(--purple); }
+.roll-summary .s-plate { color: var(--green); }
+.roll-summary .s-cookoff { color: var(--red); }
+
+.btn-roll {
+  background: linear-gradient(135deg, var(--golden), #ffb800);
+  color: #1a0a00; font-size: 1.5rem; padding: 16px 60px;
+  border-radius: 50px; box-shadow: 0 4px 20px rgba(247,201,72,0.4);
+  animation: rollPulse 2s ease-in-out infinite;
+}
+.btn-roll:hover {
+  box-shadow: 0 8px 35px rgba(247,201,72,0.6);
+  animation: none;
+}
+@keyframes rollPulse {
+  0%, 100% { box-shadow: 0 4px 20px rgba(247,201,72,0.4); }
+  50% { box-shadow: 0 4px 35px rgba(247,201,72,0.7); }
+}
+.btn-roll.hidden { display: none; }
+.btn-continue {
+  background: linear-gradient(135deg, var(--teal), #3ABDB4);
+  color: #1a0a00; font-size: 1.1rem; padding: 12px 40px;
+  border-radius: 50px;
+}
+.btn-continue.hidden { display: none; }
+
+/* ============ COOK-OFF OVERLAY ============ */
+.cookoff-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.92); display: flex;
+  flex-direction: column; align-items: center; justify-content: center;
+  z-index: 100; opacity: 0; pointer-events: none;
+  transition: opacity 0.4s;
+}
+.cookoff-overlay.active { opacity: 1; pointer-events: all; }
+.cookoff-title {
+  font-size: clamp(2rem, 8vw, 4rem); font-weight: 700;
+  color: var(--red); margin-bottom: 30px;
+  text-shadow: 0 0 40px rgba(230,57,70,0.5);
+  animation: cookoffSlam 0.5s ease-out;
+}
+@keyframes cookoffSlam {
+  0% { transform: scale(3); opacity: 0; }
+  60% { transform: scale(0.9); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.cookoff-versus {
+  display: flex; align-items: center; gap: 20px;
+  flex-wrap: wrap; justify-content: center;
+}
+.cookoff-side {
+  text-align: center; padding: 20px 30px;
+  border-radius: 16px; min-width: 160px;
+  background: rgba(255,255,255,0.05);
+  border: 2px solid rgba(255,255,255,0.1);
+  transition: all 0.5s;
+}
+.cookoff-side .side-name { font-size: 1.2rem; font-weight: 600; margin-bottom: 8px; }
+.cookoff-side .side-count {
+  font-size: 3rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.cookoff-side.winner-side {
+  border-color: var(--golden);
+  box-shadow: 0 0 30px rgba(247,201,72,0.4);
+  transform: scale(1.1);
+}
+.cookoff-side.loser-side {
+  opacity: 0.5; transform: scale(0.9);
+}
+.cookoff-vs {
+  font-size: 2rem; font-weight: 700; color: var(--red);
+  text-shadow: 0 0 20px rgba(230,57,70,0.5);
+}
+.cookoff-result {
+  margin-top: 24px; font-size: 1.3rem;
+  font-weight: 600; text-align: center;
+  animation: fadeIn 0.5s ease-out;
+}
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ============ GAME LOG ============ */
+.game-log {
+  width: 100%; max-width: 800px;
+  background: linear-gradient(to bottom, #f5e6c8, #f0ddb8);
+  border-radius: 14px; padding: 14px 18px;
+  max-height: 180px; overflow-y: auto;
+  font-family: 'Patrick Hand', cursive;
+  color: #2d1b06; font-size: 0.95rem;
+  border: 2px solid #c4a060;
+  box-shadow: inset 0 2px 8px rgba(0,0,0,0.1);
+}
+.game-log::-webkit-scrollbar { width: 6px; }
+.game-log::-webkit-scrollbar-thumb { background: #c4a060; border-radius: 3px; }
+.log-entry {
+  padding: 3px 0; border-bottom: 1px dashed rgba(0,0,0,0.1);
+  animation: logSlide 0.3s ease-out;
+}
+.log-entry:last-child { border-bottom: none; }
+@keyframes logSlide {
+  from { opacity: 0; transform: translateX(-10px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.log-entry.log-cookoff { color: #c41e2a; font-weight: 600; }
+.log-entry.log-win { color: #b8860b; font-weight: 700; font-size: 1.1rem; }
+
+/* ============ VICTORY SCREEN ============ */
+#screen-victory { gap: 20px; text-align: center; }
+.victory-title {
+  font-size: clamp(2rem, 7vw, 3.5rem); font-weight: 700;
+  color: var(--golden);
+  text-shadow: 0 4px 0 #b8860b, 0 8px 30px rgba(0,0,0,0.4);
+  animation: titleBounce 2s ease-in-out infinite;
+}
+.winner-display {
+  font-size: clamp(1.5rem, 5vw, 2.5rem); font-weight: 600;
+  padding: 16px 40px; border-radius: 20px;
+  background: rgba(247,201,72,0.15);
+  border: 2px solid var(--golden);
+}
+.victory-subtitle {
+  font-size: 1.2rem; color: var(--text-muted);
+  font-family: 'Patrick Hand', cursive;
+}
+.victory-stats {
+  display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;
+  margin: 10px 0;
+}
+.stat-card {
+  background: rgba(0,0,0,0.3); border-radius: 12px;
+  padding: 12px 20px; text-align: center;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.stat-card .stat-val { font-size: 1.8rem; font-weight: 700; }
+.stat-card .stat-label { font-size: 0.75rem; color: var(--text-muted); }
+.confetti-container {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  pointer-events: none; z-index: 200; overflow: hidden;
+}
+.confetti-piece {
+  position: absolute; width: 10px; height: 10px;
+  top: -20px; animation: confettiFall linear forwards;
+}
+@keyframes confettiFall {
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+}
+
+/* ============ PENDING MATCH INDICATOR ============ */
+.pending-indicator {
+  background: linear-gradient(135deg, rgba(230,57,70,0.2), rgba(230,57,70,0.1));
+  border: 2px solid var(--red); border-radius: 14px;
+  padding: 10px 20px; text-align: center;
+  font-weight: 600; color: var(--red);
+  animation: pendingPulse 1.5s ease-in-out infinite;
+  width: 100%; max-width: 800px;
+}
+@keyframes pendingPulse {
+  0%, 100% { box-shadow: 0 0 10px rgba(230,57,70,0.2); }
+  50% { box-shadow: 0 0 25px rgba(230,57,70,0.4); }
+}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width: 600px) {
+  .station { min-width: 100px; padding: 10px 12px; }
+  .station-cubes { font-size: 1.4rem; }
+  .die { width: 42px; height: 42px; font-size: 1.2rem; }
+  .cookoff-side { min-width: 120px; padding: 14px 20px; }
+  .cookoff-side .side-count { font-size: 2.2rem; }
+  .title-rules { grid-template-columns: 1fr; }
+  .game-log { max-height: 140px; font-size: 0.85rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- ==================== TITLE SCREEN ==================== -->
+<div id="screen-title" class="screen active">
+  <div class="title-float-container" id="floating-food"></div>
+  <div class="title-logo">🍳 Too Many Cooks! 🔥</div>
+  <div class="title-sub">~ La Cuisine Catastrophe ~</div>
+  <div class="title-lore">
+    It's Saturday night at the world's most dysfunctional restaurant.
+    The head chef quit, orders are piling up, and the health inspector arrives at midnight.<br><br>
+    Each cook is drowning in order cubes — roll them to see what fate serves up.
+    Plate a dish and send it out. Dump your mess on the next station.
+    Or challenge a rival to a <strong style="color:var(--red)">Cook-Off</strong> — and risk getting buried in tickets!
+  </div>
+  <div class="title-rules">
+    <div class="rule-card">
+      <span class="rule-emoji">📋</span>
+      <span class="rule-text"><strong>Ticket ×3</strong><br>Order stays at your station</span>
+    </div>
+    <div class="rule-card">
+      <span class="rule-emoji">🫳</span>
+      <span class="rule-text"><strong>Dump ×1</strong><br>Pass to next chef!</span>
+    </div>
+    <div class="rule-card">
+      <span class="rule-emoji">🍽️</span>
+      <span class="rule-text"><strong>Plate ×1</strong><br>Served! Gone forever</span>
+    </div>
+    <div class="rule-card">
+      <span class="rule-emoji">🔥</span>
+      <span class="rule-text"><strong>Cook-Off ×1</strong><br>Showdown! Loser eats all</span>
+    </div>
+  </div>
+  <div class="title-goal">🏆 First chef to clear their station wins the <strong>Golden Ladle</strong>!</div>
+  <button class="btn btn-primary" onclick="showScreen('setup')">START COOKING! 🔥</button>
+</div>
+
+<!-- ==================== SETUP SCREEN ==================== -->
+<div id="screen-setup" class="screen">
+  <div class="setup-title">🧑‍🍳 Kitchen Setup</div>
+  <p style="color:var(--text-muted); margin-bottom: 8px;">How many chefs in the kitchen?</p>
+  <div class="count-selector" id="count-selector"></div>
+  <div class="player-configs" id="player-configs"></div>
+  <button class="btn btn-primary" onclick="startGame()" style="margin-top: 10px;">
+    FIRE UP THE KITCHEN! 🔥
+  </button>
+</div>
+
+<!-- ==================== GAME SCREEN ==================== -->
+<div id="screen-game" class="screen">
+  <div class="turn-banner" id="turn-banner"></div>
+  <div class="player-stations" id="player-stations"></div>
+  <div id="pending-indicator" class="pending-indicator" style="display:none;"></div>
+  <div class="kitchen-area" id="kitchen-area">
+    <div class="roll-area" id="roll-area"></div>
+    <div class="roll-summary" id="roll-summary"></div>
+    <button class="btn btn-roll" id="btn-roll" onclick="doRoll()">ROLL! 🎲</button>
+    <button class="btn btn-continue hidden" id="btn-continue" onclick="nextTurn()">NEXT CHEF ➡️</button>
+  </div>
+  <div class="game-log" id="game-log"></div>
+  <div class="cookoff-overlay" id="cookoff-overlay"></div>
+</div>
+
+<!-- ==================== VICTORY SCREEN ==================== -->
+<div id="screen-victory" class="screen">
+  <div class="confetti-container" id="confetti-container"></div>
+  <div class="victory-title">🏆 GOLDEN LADLE WINNER! 🏆</div>
+  <div class="winner-display" id="winner-display"></div>
+  <div class="victory-subtitle">First to clear the station!</div>
+  <div class="victory-stats" id="victory-stats"></div>
+  <button class="btn btn-primary" onclick="showScreen('setup')">COOK AGAIN! 🍳</button>
+</div>
+
+<script>
+/* ==================================================================
+   TOO MANY COOKS — Game Engine
+   ================================================================== */
+
+// ─── Constants ───
+const FACE = { TICKET: 0, DUMP: 1, PLATE: 2, COOKOFF: 3 };
+const FACE_DATA = [
+  { name: 'Ticket',   emoji: '📋', cls: 'ticket',  color: '#6B7280' },
+  { name: 'Dump',     emoji: '🫳', cls: 'dump',    color: '#8B5CF6' },
+  { name: 'Plate',    emoji: '🍽️', cls: 'plate',   color: '#10B981' },
+  { name: 'Cook-Off', emoji: '🔥', cls: 'cookoff', color: '#EF4444' },
+];
+const PLAYER_COLORS = ['#FF6B35','#4ECDC4','#E63946','#7209B7','#06D6A0','#F472B6'];
+const AI_CHEFS = [
+  { name: 'Bot-ardee',     quip: 'Mama mia!' },
+  { name: 'Gordon RAMsey', quip: "IT'S RAW!" },
+  { name: 'Sous-Vide Bot', quip: 'Precisely calculated.' },
+  { name: 'Chef Algo',     quip: 'Optimizing flavor...' },
+  { name: 'Wok-Bot',       quip: 'Wok and roll, baby!' },
+];
+const STARTING_CUBES = 10;
+const FOOD_EMOJIS = ['🍕','🌮','🍔','🍩','🧁','🥐','🍣','🍗','🥞','🧀','🌶️','🍟','🥚','🍰','🫕'];
+const FUNNY_DUMPS = [
+  '{name} yeets {count} order(s) at {next}! No refunds!',
+  '{name} slides {count} greasy ticket(s) onto {next}\'s counter!',
+  '{name} dumps {count} nightmare order(s) on {next}. Sorry not sorry!',
+  'Order up! {name} shoves {count} ticket(s) at {next}!',
+  '{name} says "not my problem" and passes {count} to {next}!',
+];
+const FUNNY_PLATES = [
+  '{count} dish(es) plated! The crowd goes mild! 👏',
+  '{name} sends out {count} dish(es)! Somebody\'s eating tonight!',
+  'Ding ding! {count} order(s) UP! {name} is cooking! 🛎️',
+  '{name} plates {count}! Gordon would be... mildly less angry.',
+  '{count} dish(es) served with questionable garnish! 🌿',
+];
+
+// ─── Game State ───
+let G = {
+  players: [],
+  currentIndex: 0,
+  pendingMatch: null,
+  phase: 'title',
+  turnNumber: 0,
+  stats: { totalPlated: 0, totalDumped: 0, totalCookoffs: 0, turns: 0 },
+};
+let selectedCount = 2;
+let isAnimating = false;
+
+// ─── Sound Engine (Web Audio) ───
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audioCtx = null;
+function ensureAudio() {
+  if (!audioCtx) audioCtx = new AudioCtx();
+}
+function playSound(type) {
+  try {
+    ensureAudio();
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.connect(g); g.connect(audioCtx.destination);
+    const now = audioCtx.currentTime;
+    switch(type) {
+      case 'roll':
+        o.type = 'square'; o.frequency.setValueAtTime(200, now);
+        o.frequency.exponentialRampToValueAtTime(600, now + 0.15);
+        g.gain.setValueAtTime(0.08, now);
+        g.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+        o.start(now); o.stop(now + 0.2); break;
+      case 'plate':
+        o.type = 'sine'; o.frequency.setValueAtTime(800, now);
+        o.frequency.exponentialRampToValueAtTime(1200, now + 0.15);
+        g.gain.setValueAtTime(0.1, now);
+        g.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+        o.start(now); o.stop(now + 0.2); break;
+      case 'dump':
+        o.type = 'sawtooth'; o.frequency.setValueAtTime(300, now);
+        o.frequency.exponentialRampToValueAtTime(100, now + 0.2);
+        g.gain.setValueAtTime(0.06, now);
+        g.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+        o.start(now); o.stop(now + 0.25); break;
+      case 'cookoff':
+        o.type = 'sawtooth'; o.frequency.setValueAtTime(150, now);
+        o.frequency.linearRampToValueAtTime(400, now + 0.3);
+        g.gain.setValueAtTime(0.12, now);
+        g.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+        o.start(now); o.stop(now + 0.5); break;
+      case 'win':
+        o.type = 'square';
+        [523,659,784,1047].forEach((f,i) => {
+          o.frequency.setValueAtTime(f, now + i*0.15);
+        });
+        g.gain.setValueAtTime(0.08, now);
+        g.gain.exponentialRampToValueAtTime(0.001, now + 0.7);
+        o.start(now); o.stop(now + 0.7); break;
+      case 'clash':
+        o.type = 'sawtooth'; o.frequency.setValueAtTime(80, now);
+        g.gain.setValueAtTime(0.15, now);
+        g.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+        o.start(now); o.stop(now + 0.4); break;
+    }
+  } catch(e) {}
+}
+
+// ─── Utility ───
+const $ = id => document.getElementById(id);
+const wait = ms => new Promise(r => setTimeout(r, ms));
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+function tmpl(str, vars) {
+  return str.replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? '');
+}
+
+// ─── Screen Management ───
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  $('screen-' + name).classList.add('active');
+  G.phase = name;
+  if (name === 'setup') initSetup();
+}
+
+// ─── Floating Food (Title Screen) ───
+function initFloatingFood() {
+  const c = $('floating-food'); c.innerHTML = '';
+  for (let i = 0; i < 20; i++) {
+    const el = document.createElement('div');
+    el.className = 'title-float';
+    el.textContent = pick(FOOD_EMOJIS);
+    el.style.left = Math.random() * 100 + '%';
+    el.style.animationDuration = (8 + Math.random() * 12) + 's';
+    el.style.animationDelay = (Math.random() * 10) + 's';
+    el.style.fontSize = (1.2 + Math.random() * 1.5) + 'rem';
+    c.appendChild(el);
+  }
+}
+
+// ─── Setup Screen ───
+function initSetup() {
+  const sel = $('count-selector'); sel.innerHTML = '';
+  for (let i = 2; i <= 6; i++) {
+    const b = document.createElement('button');
+    b.className = 'count-btn' + (i === selectedCount ? ' selected' : '');
+    b.textContent = i;
+    b.onclick = () => { selectedCount = i; initSetup(); };
+    sel.appendChild(b);
+  }
+  const cfg = $('player-configs'); cfg.innerHTML = '';
+  const shuffledAI = [...AI_CHEFS].sort(() => Math.random() - 0.5);
+  for (let i = 0; i < selectedCount; i++) {
+    const row = document.createElement('div');
+    row.className = 'player-row';
+    row.style.borderLeftColor = PLAYER_COLORS[i];
+    row.style.animationDelay = (i * 0.08) + 's';
+    const isFirst = i === 0;
+    const aiName = shuffledAI[i % shuffledAI.length].name;
+    row.innerHTML = `
+      <span class="chef-hat">👨‍🍳</span>
+      <input type="text" id="pname-${i}" placeholder="${isFirst ? 'Your name' : 'Chef ' + (i+1)}"
+        value="${isFirst ? '' : aiName}" maxlength="16">
+      ${isFirst ? '<span style="font-size:0.8rem;color:var(--text-muted);">YOU</span>' : `
+      <label class="ai-toggle">
+        <input type="checkbox" id="pai-${i}" checked>
+        <span class="toggle-track"><span class="toggle-thumb"></span></span>
+        AI
+      </label>`}
+    `;
+    cfg.appendChild(row);
+  }
+}
+
+// ─── Start Game ───
+function startGame() {
+  const players = [];
+  for (let i = 0; i < selectedCount; i++) {
+    const nameEl = $('pname-' + i);
+    const aiEl = $('pai-' + i);
+    const name = (nameEl.value.trim() || ('Chef ' + (i + 1)));
+    players.push({
+      name, index: i,
+      cubes: STARTING_CUBES,
+      isAI: i === 0 ? false : (aiEl ? aiEl.checked : true),
+      color: PLAYER_COLORS[i],
+    });
+  }
+  G.players = players;
+  G.currentIndex = Math.floor(Math.random() * players.length);
+  G.pendingMatch = null;
+  G.turnNumber = 0;
+  G.stats = { totalPlated: 0, totalDumped: 0, totalCookoffs: 0, turns: 0 };
+  $('game-log').innerHTML = '';
+  showScreen('game');
+  beginTurn();
+}
+
+// ─── Get Next Player Index ───
+function nextPlayerIndex(from) {
+  return (from + 1) % G.players.length;
+}
+function getPlayer(i) { return G.players[i]; }
+function currentPlayer() { return G.players[G.currentIndex]; }
+
+// ─── Rendering ───
+function renderStations() {
+  const c = $('player-stations'); c.innerHTML = '';
+  G.players.forEach((p, i) => {
+    const div = document.createElement('div');
+    div.className = 'station' + (i === G.currentIndex ? ' active' : '');
+    div.style.setProperty('--pc', p.color);
+    div.innerHTML = `
+      <style>.station:nth-child(${i+1})::before { background: ${p.color}; }</style>
+      <div class="station-name">
+        <span style="color:${p.color}">${p.isAI ? '🤖' : '🧑‍🍳'}</span>
+        ${p.name}
+      </div>
+      <div class="station-cubes" id="cubes-${i}">
+        ${p.cubes}<small> order${p.cubes !== 1 ? 's' : ''}</small>
+      </div>
+    `;
+    if (p.cubes === 0) { div.classList.add('winner'); }
+    c.appendChild(div);
+  });
+}
+
+function renderPendingIndicator() {
+  const el = $('pending-indicator');
+  if (G.pendingMatch) {
+    const ch = getPlayer(G.pendingMatch.challengerIndex);
+    el.style.display = 'block';
+    el.innerHTML = `🔥 COOK-OFF PENDING: ${G.pendingMatch.count} cube${G.pendingMatch.count>1?'s':''} from ${ch.name}! Next chef must answer the challenge!`;
+  } else {
+    el.style.display = 'none';
+  }
+}
+
+function addLog(msg, cls = '') {
+  const log = $('game-log');
+  const div = document.createElement('div');
+  div.className = 'log-entry' + (cls ? ' ' + cls : '');
+  div.innerHTML = msg;
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+}
+
+// ─── Dice Rolling ───
+function rollDice(count) {
+  const results = [];
+  for (let i = 0; i < count; i++) {
+    const r = Math.random() * 6;
+    if (r < 3) results.push(FACE.TICKET);
+    else if (r < 4) results.push(FACE.DUMP);
+    else if (r < 5) results.push(FACE.PLATE);
+    else results.push(FACE.COOKOFF);
+  }
+  return results;
+}
+
+function countFaces(results) {
+  const c = [0, 0, 0, 0];
+  results.forEach(f => c[f]++);
+  return { tickets: c[0], dumps: c[1], plates: c[2], cookoffs: c[3] };
+}
+
+// ─── Dice Animation ───
+async function animateRoll(results) {
+  const area = $('roll-area');
+  area.innerHTML = '';
+
+  // Phase 1: Spinning mystery dice
+  for (let i = 0; i < results.length; i++) {
+    const die = document.createElement('div');
+    die.className = 'die die-rolling ticket';
+    die.textContent = '?';
+    die.style.animationDelay = '0s';
+    area.appendChild(die);
+  }
+  playSound('roll');
+  await wait(800);
+
+  // Phase 2: Reveal faces
+  const dice = area.querySelectorAll('.die');
+  // Sort results for visual grouping: cookoff, dump, plate, ticket
+  const sorted = [...results].map((f,i) => ({face:f, origIdx:i}));
+  sorted.sort((a,b) => {
+    const order = [FACE.COOKOFF, FACE.DUMP, FACE.PLATE, FACE.TICKET];
+    return order.indexOf(a.face) - order.indexOf(b.face);
+  });
+
+  area.innerHTML = '';
+  sorted.forEach((item, i) => {
+    const f = FACE_DATA[item.face];
+    const die = document.createElement('div');
+    die.className = `die ${f.cls}`;
+    die.textContent = f.emoji;
+    die.style.setProperty('--delay', (i * 0.06) + 's');
+    area.appendChild(die);
+  });
+
+  playSound('plate');
+  await wait(600);
+}
+
+function showRollSummary(counts) {
+  const el = $('roll-summary');
+  const parts = [];
+  if (counts.tickets > 0) parts.push(`<span class="s-ticket">📋×${counts.tickets}</span>`);
+  if (counts.dumps > 0) parts.push(`<span class="s-dump">🫳×${counts.dumps}</span>`);
+  if (counts.plates > 0) parts.push(`<span class="s-plate">🍽️×${counts.plates}</span>`);
+  if (counts.cookoffs > 0) parts.push(`<span class="s-cookoff">🔥×${counts.cookoffs}</span>`);
+  el.innerHTML = parts.join('  ');
+}
+
+// ─── Cook-Off Overlay ───
+async function showCookoff(data) {
+  const overlay = $('cookoff-overlay');
+  playSound('clash');
+
+  if (data.type === 'new_challenge') {
+    const ch = getPlayer(data.challenger);
+    overlay.innerHTML = `
+      <div class="cookoff-title">🔥 COOK-OFF CHALLENGE! 🔥</div>
+      <div class="cookoff-versus">
+        <div class="cookoff-side">
+          <div class="side-name" style="color:${ch.color}">${ch.name}</div>
+          <div class="side-count">${data.count} 🔥</div>
+        </div>
+        <div class="cookoff-vs">➜</div>
+        <div class="cookoff-side">
+          <div class="side-name" style="color:${getPlayer(nextPlayerIndex(data.challenger)).color}">${getPlayer(nextPlayerIndex(data.challenger)).name}</div>
+          <div class="side-count">???</div>
+        </div>
+      </div>
+      <div class="cookoff-result">${ch.name} throws down ${data.count} order${data.count>1?'s':''}! Next chef must answer!</div>
+    `;
+    overlay.classList.add('active');
+    await wait(2500);
+    overlay.classList.remove('active');
+    return;
+  }
+
+  if (data.type === 'tie') {
+    const nextP = getPlayer(nextPlayerIndex(G.currentIndex));
+    overlay.innerHTML = `
+      <div class="cookoff-title">⚡ TIE — REMATCH! ⚡</div>
+      <div class="cookoff-versus">
+        <div class="cookoff-side">
+          <div class="side-name">Pending</div>
+          <div class="side-count">${data.challengerCount} 🔥</div>
+        </div>
+        <div class="cookoff-vs">VS</div>
+        <div class="cookoff-side">
+          <div class="side-name" style="color:${currentPlayer().color}">${currentPlayer().name}</div>
+          <div class="side-count">${data.defenderCount} 🔥</div>
+        </div>
+      </div>
+      <div class="cookoff-result" style="color:var(--golden);">
+        DEAD HEAT! ${data.total} cubes cascade to ${nextP.name}! 🔥🔥🔥
+      </div>
+    `;
+    overlay.classList.add('active');
+    playSound('cookoff');
+    await wait(3000);
+    overlay.classList.remove('active');
+    return;
+  }
+
+  // Win or lose
+  const winner = getPlayer(data.winner);
+  const loser = getPlayer(data.loser);
+  // Left side = the original challenger (from pending), Right side = current player (defender)
+  const leftPlayer = data.type === 'defender_wins' ? loser : winner;
+  overlay.innerHTML = `
+    <div class="cookoff-title">🔥 COOK-OFF! 🔥</div>
+    <div class="cookoff-versus">
+      <div class="cookoff-side" id="co-left">
+        <div class="side-name" style="color:${leftPlayer.color}">${leftPlayer.name}</div>
+        <div class="side-count">${data.challengerCount} 🔥</div>
+      </div>
+      <div class="cookoff-vs">VS</div>
+      <div class="cookoff-side" id="co-right">
+        <div class="side-name" style="color:${currentPlayer().color}">${currentPlayer().name}</div>
+        <div class="side-count">${data.defenderCount} 🔥</div>
+      </div>
+    </div>
+    <div class="cookoff-result" id="co-result" style="opacity:0;"></div>
+  `;
+  overlay.classList.add('active');
+  playSound('cookoff');
+  await wait(1500);
+
+  // Reveal winner
+  const leftIsWinner = (data.winner !== G.currentIndex);
+  const leftEl = overlay.querySelector('#co-left');
+  const rightEl = overlay.querySelector('#co-right');
+  if (leftIsWinner) {
+    leftEl.classList.add('winner-side');
+    rightEl.classList.add('loser-side');
+  } else {
+    rightEl.classList.add('winner-side');
+    leftEl.classList.add('loser-side');
+  }
+
+  const resultEl = overlay.querySelector('#co-result');
+  resultEl.style.opacity = '1';
+  resultEl.innerHTML = `
+    💥 ${winner.name} wins! ${loser.name} drowns in <strong>${data.total}</strong> orders!
+  `;
+  playSound('win');
+  await wait(2800);
+  overlay.classList.remove('active');
+}
+
+// ─── Turn Flow ───
+function beginTurn() {
+  isAnimating = false;
+  const p = currentPlayer();
+
+  // Win check: 0 cubes at start of turn = victory!
+  if (p.cubes <= 0) {
+    p.cubes = 0;
+    // Pending match cubes from a gone chef are removed from the game
+    if (G.pendingMatch) G.pendingMatch = null;
+    victory(G.currentIndex);
+    return;
+  }
+
+  G.turnNumber++;
+  G.stats.turns++;
+  renderStations();
+  renderPendingIndicator();
+
+  $('roll-area').innerHTML = '';
+  $('roll-summary').innerHTML = '';
+  $('turn-banner').innerHTML = `${p.isAI ? '🤖' : '🧑‍🍳'} <span style="color:${p.color}">${p.name}</span>'s Turn!`;
+  $('turn-banner').style.borderColor = p.color;
+
+  $('btn-roll').classList.remove('hidden');
+  $('btn-continue').classList.add('hidden');
+
+  if (p.isAI) {
+    $('btn-roll').classList.add('hidden');
+    addLog(`🤖 ${p.name} sizes up the kitchen...`);
+    setTimeout(() => doRoll(), 800 + Math.random() * 600);
+  }
+}
+
+async function doRoll() {
+  if (isAnimating) return;
+  isAnimating = true;
+  const p = currentPlayer();
+  const nextIdx = nextPlayerIndex(G.currentIndex);
+  const nextP = getPlayer(nextIdx);
+
+  $('btn-roll').classList.add('hidden');
+
+  // Roll all cubes
+  const results = rollDice(p.cubes);
+  const counts = countFaces(results);
+
+  addLog(`🎲 ${p.name} rolls ${p.cubes} cube${p.cubes>1?'s':''}!`);
+
+  // Animate dice
+  await animateRoll(results);
+  showRollSummary(counts);
+  await wait(400);
+
+  // ─── Resolve Non-Match ───
+  // Plates
+  if (counts.plates > 0) {
+    p.cubes -= counts.plates;
+    G.stats.totalPlated += counts.plates;
+    const msg = tmpl(pick(FUNNY_PLATES), { name: p.name, count: counts.plates });
+    addLog('🍽️ ' + msg);
+    playSound('plate');
+    await wait(300);
+  }
+
+  // Dumps
+  if (counts.dumps > 0) {
+    p.cubes -= counts.dumps;
+    nextP.cubes += counts.dumps;
+    G.stats.totalDumped += counts.dumps;
+    const msg = tmpl(pick(FUNNY_DUMPS), { name: p.name, count: counts.dumps, next: nextP.name });
+    addLog('🫳 ' + msg);
+    playSound('dump');
+    await wait(300);
+  }
+
+  // Cook-offs leave the player's hand
+  if (counts.cookoffs > 0) {
+    p.cubes -= counts.cookoffs;
+  }
+
+  renderStations();
+  await wait(400);
+
+  // ─── Resolve Cook-Off ───
+  let cookoffResult = null;
+
+  if (G.pendingMatch) {
+    const pending = G.pendingMatch;
+    const total = pending.count + counts.cookoffs;
+
+    if (counts.cookoffs > pending.count) {
+      // Defender wins — challenger takes all
+      const challenger = getPlayer(pending.challengerIndex);
+      if (challenger.cubes > 0) {
+        challenger.cubes += total;
+      }
+      // else cubes vanish (chef already gone)
+      cookoffResult = {
+        type: 'defender_wins',
+        winner: G.currentIndex,
+        loser: pending.challengerIndex,
+        total, defenderCount: counts.cookoffs,
+        challengerCount: pending.count,
+      };
+      G.pendingMatch = null;
+    } else if (counts.cookoffs < pending.count) {
+      // Defender loses — takes all
+      p.cubes += total;
+      cookoffResult = {
+        type: 'defender_loses',
+        winner: pending.challengerIndex,
+        loser: G.currentIndex,
+        total, defenderCount: counts.cookoffs,
+        challengerCount: pending.count,
+      };
+      G.pendingMatch = null;
+    } else {
+      // Tie — cascade!
+      G.pendingMatch = { count: total, challengerIndex: G.currentIndex };
+      cookoffResult = {
+        type: 'tie', total,
+        challengerCount: pending.count,
+        defenderCount: counts.cookoffs,
+      };
+    }
+    G.stats.totalCookoffs++;
+  } else if (counts.cookoffs > 0) {
+    // New challenge
+    G.pendingMatch = { count: counts.cookoffs, challengerIndex: G.currentIndex };
+    cookoffResult = {
+      type: 'new_challenge',
+      count: counts.cookoffs,
+      challenger: G.currentIndex,
+    };
+  }
+
+  if (cookoffResult) {
+    if (cookoffResult.type === 'new_challenge') {
+      addLog(`🔥 ${p.name} challenges ${nextP.name} with ${cookoffResult.count} Cook-Off cube${cookoffResult.count>1?'s':''}!`, 'log-cookoff');
+    } else if (cookoffResult.type === 'tie') {
+      addLog(`⚡ TIE! ${cookoffResult.total} cubes cascade to ${getPlayer(nextPlayerIndex(G.currentIndex)).name}!`, 'log-cookoff');
+    } else {
+      const winner = getPlayer(cookoffResult.winner);
+      const loser = getPlayer(cookoffResult.loser);
+      addLog(`💥 ${winner.name} wins the Cook-Off! ${loser.name} eats ${cookoffResult.total} orders!`, 'log-cookoff');
+    }
+    await showCookoff(cookoffResult);
+  }
+
+  renderStations();
+  renderPendingIndicator();
+
+  // AI quip
+  if (p.isAI) {
+    const chef = AI_CHEFS.find(c => p.name.includes(c.name));
+    if (chef && Math.random() > 0.5) {
+      addLog(`💬 ${p.name}: "${chef.quip}"`);
+    }
+  }
+
+  // ─── Check Win ───
+  if (p.cubes <= 0) {
+    p.cubes = 0;
+    await wait(500);
+    victory(G.currentIndex);
+    return;
+  }
+
+  // Show continue button
+  $('btn-continue').classList.remove('hidden');
+  isAnimating = false;
+
+  // AI auto-continue
+  if (p.isAI) {
+    setTimeout(() => nextTurn(), 1000);
+  }
+}
+
+function nextTurn() {
+  if (isAnimating) return;
+  G.currentIndex = nextPlayerIndex(G.currentIndex);
+  beginTurn();
+}
+
+// ─── Victory ───
+function victory(winnerIndex) {
+  const p = getPlayer(winnerIndex);
+  addLog(`🏆 ${p.name} CLEARED THE STATION! GOLDEN LADLE WINNER!!! 🏆`, 'log-win');
+  playSound('win');
+
+  $('winner-display').innerHTML = `<span style="color:${p.color}">${p.isAI ? '🤖' : '🧑‍🍳'} ${p.name}</span>`;
+
+  // Stats
+  const statsEl = $('victory-stats');
+  statsEl.innerHTML = `
+    <div class="stat-card"><div class="stat-val">${G.stats.turns}</div><div class="stat-label">Total Turns</div></div>
+    <div class="stat-card"><div class="stat-val">${G.stats.totalPlated}</div><div class="stat-label">Dishes Plated 🍽️</div></div>
+    <div class="stat-card"><div class="stat-val">${G.stats.totalDumped}</div><div class="stat-label">Orders Dumped 🫳</div></div>
+    <div class="stat-card"><div class="stat-val">${G.stats.totalCookoffs}</div><div class="stat-label">Cook-Offs 🔥</div></div>
+  `;
+
+  // Confetti
+  const cc = $('confetti-container'); cc.innerHTML = '';
+  const colors = ['#FF6B35','#F7C948','#E63946','#10B981','#8B5CF6','#4ECDC4','#F472B6','#FFD166'];
+  for (let i = 0; i < 80; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    piece.style.left = Math.random() * 100 + '%';
+    piece.style.background = pick(colors);
+    piece.style.animationDuration = (2 + Math.random() * 3) + 's';
+    piece.style.animationDelay = (Math.random() * 2) + 's';
+    piece.style.width = (6 + Math.random() * 8) + 'px';
+    piece.style.height = (6 + Math.random() * 8) + 'px';
+    piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+    cc.appendChild(piece);
+  }
+
+  showScreen('victory');
+}
+
+// ─── Init ───
+initFloatingFood();
+</script>
+</body>
+</html>

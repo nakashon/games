@@ -124,6 +124,7 @@ body::before {
 @keyframes cardSettle { 0% { transform: translateY(-10px); opacity: 0.5; } 100% { transform: translateY(0); opacity: 1; } }
 .floating-text { position: absolute; font-weight: 700; font-size: 1rem; pointer-events: none; animation: floatTextUp 1.2s ease-out forwards; z-index: 10; }
 @keyframes floatTextUp { 0% { opacity: 1; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(-60px) scale(1.2); } }
+.cookoff-card-label { width:100%;text-align:center;font-weight:700;font-size:.85rem;color:var(--red);padding:4px 0;animation:fadeIn .3s ease-out; }
 .roll-summary { text-align: center; padding: 8px; font-size: 1rem; min-height: 30px; color: var(--text-muted); }
 .roll-summary span { margin: 0 6px; font-weight: 600; }
 .roll-summary .s-ticket { color: #b8a070; }
@@ -443,20 +444,68 @@ async function animateCards(results) {
 }
 
 async function animateResolution(area, counts) {
-  const cs = area.querySelectorAll('.card-container');
+  const cs = [...area.querySelectorAll('.card-container')];
+  const nextIdx = nextPlayerIndex(G.currentIndex);
+  const nextStation = document.getElementById('station-'+nextIdx);
+
+  // Plates fly up — served to customers
   if (counts.plates > 0) {
-    let d=0;cs.forEach(c=>{if(+c.dataset.face===FACE.PLATE){setTimeout(()=>{c.classList.add('card-fly-up');const ft=document.createElement('div');ft.className='floating-text';ft.style.color='#10B981';ft.textContent='+1 served!';ft.style.left=c.offsetLeft+'px';ft.style.top=c.offsetTop+'px';area.appendChild(ft);setTimeout(()=>ft.remove(),1200);},d);d+=120;}});
+    let d=0;
+    cs.filter(c=>+c.dataset.face===FACE.PLATE).forEach(c=>{
+      setTimeout(()=>{
+        c.classList.add('card-fly-up');
+        const ft=document.createElement('div');ft.className='floating-text';ft.style.color='#10B981';ft.textContent='Served!';
+        ft.style.left=c.offsetLeft+'px';ft.style.top=c.offsetTop+'px';area.appendChild(ft);setTimeout(()=>ft.remove(),1200);
+      },d);d+=120;
+    });
     playSound('plate');await wait(300+d);
   }
-  if (counts.dumps > 0) {
-    let d=0;cs.forEach(c=>{if(+c.dataset.face===FACE.DUMP){setTimeout(()=>c.classList.add('card-fly-right'),d);d+=120;}});
-    playSound('dump');await wait(300+d);
+
+  // Dumps fly to the next chef's station
+  if (counts.dumps > 0 && nextStation) {
+    const stRect = nextStation.getBoundingClientRect();
+    let d=0;
+    cs.filter(c=>+c.dataset.face===FACE.DUMP).forEach(c=>{
+      setTimeout(()=>{
+        const cRect = c.getBoundingClientRect();
+        const dx = stRect.left + stRect.width/2 - cRect.left - cRect.width/2;
+        const dy = stRect.top + stRect.height/2 - cRect.top - cRect.height/2;
+        c.style.zIndex='20';
+        c.animate([
+          {transform:'translate(0,0) scale(1)',opacity:1},
+          {transform:'translate('+dx+'px,'+dy+'px) scale(0.4)',opacity:0.3}
+        ],{duration:600,easing:'ease-in',fill:'forwards'});
+      },d);d+=150;
+    });
+    playSound('dump');await wait(400+d);
+    // Flash the receiving station
+    if(nextStation){nextStation.style.transition='box-shadow .3s';nextStation.style.boxShadow='0 0 25px rgba(168,85,247,.6)';setTimeout(()=>nextStation.style.boxShadow='',800);}
   }
+
+  // Cook-off cards gather to center with fire glow
   if (counts.cookoffs > 0) {
-    cs.forEach(c=>{if(+c.dataset.face===FACE.COOKOFF)c.classList.add('card-fly-center');});
-    playSound('cookoff');await wait(400);
+    const cookoffCards = cs.filter(c=>+c.dataset.face===FACE.COOKOFF);
+    cookoffCards.forEach((c,i)=>{
+      c.style.transition='transform .4s ease, box-shadow .4s ease';
+      c.style.transform='scale(1.15)';
+      c.style.boxShadow='0 0 20px rgba(239,68,68,.6), 0 0 40px rgba(239,68,68,.3)';
+      c.style.zIndex='15';
+    });
+    // Add a label above the cookoff cards
+    const label = document.createElement('div');
+    label.className='cookoff-card-label';
+    label.innerHTML = G.pendingMatch && G.pendingMatch.challengerIndex!==G.currentIndex
+      ? '⚔️ Answering the challenge!'
+      : '🔥 Challenging next chef!';
+    // Insert label before the first cookoff card
+    if(cookoffCards.length>0) cookoffCards[0].parentNode.insertBefore(label, cookoffCards[0]);
+    playSound('cookoff');await wait(500);
   }
-  cs.forEach(c=>{if(+c.dataset.face===FACE.TICKET)c.classList.add('card-settle');});
+
+  // Tickets just fade slightly — they stay
+  cs.filter(c=>+c.dataset.face===FACE.TICKET).forEach(c=>{
+    c.style.transition='opacity .3s';c.style.opacity='0.5';
+  });
   await wait(300);
 }
 
