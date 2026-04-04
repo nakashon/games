@@ -319,6 +319,7 @@ const MINI_CARD_SVG = {
 let G = { players: [], currentIndex: 0, pendingMatch: null, phase: 'title', turnNumber: 0, stats: { totalPlated: 0, totalDumped: 0, totalCookoffs: 0, turns: 0 } };
 let selectedCount = 2;
 let isAnimating = false;
+let hasRolled = false;
 
 const AudioCtx = window.AudioContext || window.webkitAudioContext;
 let audioCtx = null;
@@ -683,7 +684,7 @@ async function showCookoff(data) {
 }
 
 function beginTurn() {
-  isAnimating=false;const p=currentPlayer();
+  isAnimating=false;hasRolled=false;const p=currentPlayer();
   if(p.cubes<=0){p.cubes=0;if(G.pendingMatch)G.pendingMatch=null;victory(G.currentIndex);return;}
   G.turnNumber++;G.stats.turns++;renderStations();renderPendingIndicator();
   $('card-area').innerHTML='';$('roll-summary').innerHTML='';
@@ -695,7 +696,7 @@ function beginTurn() {
 
 async function doRoll() {
   if(isAnimating)return;
-  isAnimating=true;$('btn-roll').classList.add('hidden');$('btn-continue').classList.add('hidden');
+  isAnimating=true;hasRolled=true;$('btn-roll').classList.add('hidden');$('btn-continue').classList.add('hidden');
   const p=currentPlayer();const nextIdx=nextPlayerIndex(G.currentIndex);const nextP=getPlayer(nextIdx);
   try {
     const results=rollCards(p.cubes);const counts=countFaces(results);
@@ -754,7 +755,7 @@ async function doRoll() {
   }
 }
 
-function nextTurn(){if(isAnimating)return;G.currentIndex=nextPlayerIndex(G.currentIndex);beginTurn();}
+function nextTurn(){if(isAnimating||!hasRolled)return;G.currentIndex=nextPlayerIndex(G.currentIndex);beginTurn();}
 
 function victory(winnerIndex) {
   G.phase='victory';
