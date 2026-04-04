@@ -661,7 +661,25 @@ async function showCookoff(data) {
   const liw=(data.winner!==G.currentIndex);const le=area.querySelector('#co-left');const re=area.querySelector('#co-right');
   if(liw){le.classList.add('winner-side');re.classList.add('loser-side');}else{re.classList.add('winner-side');le.classList.add('loser-side');}
   const res=area.querySelector('#co-result');res.style.opacity='1';res.innerHTML='💥 '+winner.name+' wins! '+loser.name+' drowns in <strong>'+data.total+'</strong> orders!';
-  playSound('win');await wait(2800);
+  playSound('win');await wait(1200);
+  // Fly all cook-off cards to loser's station
+  const loserStation=document.getElementById('station-'+data.loser);
+  if(loserStation){
+    const allCards=[...area.querySelectorAll('.co-card')];
+    for(let i=0;i<allCards.length;i++){
+      const card=allCards[i];
+      const cR=card.getBoundingClientRect(),sR=loserStation.getBoundingClientRect();
+      const dx=sR.left+sR.width/2-cR.left-cR.width/2;
+      const dy=sR.top+sR.height/2-cR.top-cR.height/2;
+      card.style.position='relative';card.style.zIndex='30';
+      card.animate([
+        {transform:'translate(0,0) scale(1)',opacity:1},
+        {transform:'translate('+dx+'px,'+dy+'px) scale(0.4)',opacity:0}
+      ],{duration:400,easing:'ease-in',fill:'forwards'});
+      await wait(100);
+    }
+    await wait(500);
+  } else { await wait(1600); }
 }
 
 function beginTurn() {
