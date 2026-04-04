@@ -429,6 +429,8 @@ function countFaces(results){const c=[0,0,0,0];results.forEach(f=>c[f]++);return
 
 async function animateCards(results) {
   const area = $('card-area'); area.innerHTML = '';
+  const p = currentPlayer();
+  const startCount = p.cubes;
   for (let i = 0; i < results.length; i++) {
     const f = FACE_DATA[results[i]];
     const el = document.createElement('div');
@@ -437,10 +439,14 @@ async function animateCards(results) {
     el.style.transform = 'rotate(' + ((Math.random()-0.5)*8) + 'deg)';
     el.innerHTML = '<div class="card-inner"><div class="card-face card-back">'+CARD_SVG.back+'</div><div class="card-face card-front"><div class="card-svg">'+CARD_SVG[f.cls]+'</div><div class="card-label">'+f.label+'</div></div></div>';
     area.appendChild(el);
-    setTimeout(((e)=>()=>{e.style.transition='opacity 0.2s,transform 0.3s';e.style.opacity='1';e.style.transform='rotate('+((Math.random()-0.5)*6)+'deg)';})(el), i*40);
+    // Count down station as each card is dealt
+    updateStationCount(G.currentIndex, startCount - i - 1);
+    setTimeout(((e)=>()=>{e.style.transition='opacity 0.2s,transform 0.3s';e.style.opacity='1';e.style.transform='rotate('+((Math.random()-0.5)*6)+'deg)';})(el), 0);
+    if(results.length > 1) await wait(Math.max(40, Math.min(120, 600/results.length)));
   }
+  p.cubes = 0;
   playSound('roll');
-  await wait(300 + results.length * 40);
+  await wait(200);
 
   const cards = area.querySelectorAll('.card-inner');
   for (let i = 0; i < cards.length; i++) {
@@ -473,13 +479,7 @@ async function resolveCardsOneByOne(area, results, p, nextP, nextIdx) {
   [FACE.PLATE, FACE.DUMP, FACE.TICKET, FACE.COOKOFF].forEach(f=>groups[f]=[]);
   cs.forEach(c=>{const f=+c.dataset.face;if(groups[f])groups[f].push(c);});
 
-  // STEP 1: Drop all cards onto the table — count goes to zero
-  p.cubes = 0;
-  updateStationCount(G.currentIndex, 0);
-  const curS = document.getElementById('station-'+G.currentIndex);
-  floatNumber(curS, '-'+originalCount, '#F7C948');
-  punchCount(G.currentIndex, -1, '#F7C948');
-  await wait(700);
+  // Cards already on the table (count already at 0 from animateCards countdown)
 
   // STEP 2: Plates — served! Fly up and disappear
   if (groups[FACE.PLATE].length > 0) {
