@@ -138,32 +138,27 @@ body::before {
 .btn-continue.hidden { display: none; }
 
 /* Cook-Off Overlay */
-.cookoff-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.92); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.4s; }
-.cookoff-overlay.active { opacity: 1; pointer-events: all; }
-.cookoff-title { font-size: clamp(2rem, 8vw, 4rem); font-weight: 700; color: var(--red); margin-bottom: 30px; text-shadow: 0 0 40px rgba(230,57,70,0.5); animation: cookoffSlam 0.5s ease-out; }
-@keyframes cookoffSlam { 0% { transform: scale(3); opacity: 0; } 60% { transform: scale(0.9); } 100% { transform: scale(1); opacity: 1; } }
-.cookoff-versus { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; justify-content: center; }
-.cookoff-side { text-align: center; padding: 20px 24px; border-radius: 16px; min-width: 180px; background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.1); transition: all 0.5s; }
-.cookoff-side .side-name { font-size: 1.2rem; font-weight: 600; margin-bottom: 10px; }
-.cookoff-side .side-cards { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; min-height: 60px; align-items: center; }
-.cookoff-side .side-cards .co-card { width: 44px; height: 60px; border-radius: 6px; background: linear-gradient(135deg, #DC2626, #F97316); border: 2px solid #fbbf24; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.4); transition: all 0.3s; }
-.cookoff-side .side-cards .co-card svg { width: 28px; height: 28px; }
-.cookoff-side .side-cards .co-card.face-down { background: linear-gradient(135deg, #5a3a1a, #7a5a3a); border: 2px dashed rgba(255,255,255,0.2); }
-.cookoff-side.winner-side { border-color: var(--golden); box-shadow: 0 0 30px rgba(247,201,72,0.4); transform: scale(1.05); }
-.cookoff-side.loser-side { opacity: 0.5; transform: scale(0.9); }
-.cookoff-vs { font-size: 2.5rem; font-weight: 700; color: var(--red); text-shadow: 0 0 30px rgba(230,57,70,0.6), 0 0 60px rgba(230,57,70,0.3); }
-.cookoff-result { margin-top: 24px; font-size: 1.3rem; font-weight: 600; text-align: center; animation: fadeIn 0.5s ease-out; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+/* Cook-Off inline (inside kitchen area) */
+.cookoff-box { display:flex;flex-direction:column;align-items:center;width:100%;padding:10px 0;animation:fadeIn .4s ease-out; }
+.cookoff-title { font-size:clamp(1.2rem,4vw,1.8rem);font-weight:700;color:var(--red);margin-bottom:12px;text-shadow:0 0 20px rgba(230,57,70,.4);animation:cookoffSlam .5s ease-out; }
+@keyframes cookoffSlam { 0%{transform:scale(2);opacity:0}60%{transform:scale(.95)}100%{transform:scale(1);opacity:1} }
+.cookoff-versus { display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:center; }
+.cookoff-side { text-align:center;padding:12px 16px;border-radius:14px;min-width:120px;background:rgba(255,255,255,.05);border:2px solid rgba(255,255,255,.1);transition:all .5s; }
+.cookoff-side .side-name { font-size:1rem;font-weight:600;margin-bottom:6px; }
+.cookoff-side .side-cards { display:flex;gap:4px;justify-content:center;flex-wrap:wrap;min-height:50px;align-items:center; }
+.cookoff-side .side-cards .co-card { width:40px;height:56px;border-radius:6px;background:linear-gradient(135deg,#DC2626,#F97316);border:2px solid #fbbf24;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.4);transition:all .3s; }
+.cookoff-side .side-cards .co-card svg { width:24px;height:24px; }
+.cookoff-side .side-cards .co-card.face-down { background:linear-gradient(135deg,#5a3a1a,#7a5a3a);border:2px dashed rgba(255,255,255,.2); }
+.cookoff-side.winner-side { border-color:var(--golden);box-shadow:0 0 20px rgba(247,201,72,.4);transform:scale(1.05); }
+.cookoff-side.loser-side { opacity:.5;transform:scale(.9); }
+.cookoff-vs { font-size:1.8rem;font-weight:700;color:var(--red);text-shadow:0 0 20px rgba(230,57,70,.5); }
+.cookoff-result { margin-top:12px;font-size:1.05rem;font-weight:600;text-align:center;animation:fadeIn .5s ease-out; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)} }
 
-/* Game Log */
-.game-log { width: 100%; max-width: 800px; background: linear-gradient(to bottom, #f5e6c8, #f0ddb8); border-radius: 14px; padding: 14px 18px; max-height: 180px; overflow-y: auto; font-family: 'Patrick Hand', cursive; color: #2d1b06; font-size: 0.95rem; border: 2px solid #c4a060; box-shadow: inset 0 2px 8px rgba(0,0,0,0.1); background-image: repeating-linear-gradient(0deg, transparent, transparent 24px, rgba(0,0,0,0.04) 24px, rgba(0,0,0,0.04) 25px); }
-.game-log::-webkit-scrollbar { width: 6px; }
-.game-log::-webkit-scrollbar-thumb { background: #c4a060; border-radius: 3px; }
-.log-entry { padding: 3px 0; border-bottom: 1px dashed rgba(0,0,0,0.08); animation: logSlide 0.3s ease-out; }
-.log-entry:last-child { border-bottom: none; }
-@keyframes logSlide { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
-.log-entry.log-cookoff { color: #c41e2a; font-weight: 600; }
-.log-entry.log-win { color: #b8860b; font-weight: 700; font-size: 1.1rem; }
+/* Status Line */
+.status-line { width:100%;max-width:800px;text-align:center;padding:10px 18px;border-radius:12px;font-family:'Patrick Hand',cursive;font-size:1.1rem;color:var(--warm);min-height:44px;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.06);animation:fadeIn .3s ease-out; }
+.status-line.status-cookoff { color:#fca5a5;background:rgba(230,57,70,.12);border-color:rgba(230,57,70,.3); }
+.status-line.status-win { color:var(--golden);background:rgba(247,201,72,.12);border-color:rgba(247,201,72,.3);font-size:1.3rem;font-weight:600; }
 
 /* Pending */
 .pending-indicator { background: linear-gradient(135deg, rgba(230,57,70,0.2), rgba(230,57,70,0.1)); border: 2px solid var(--red); border-radius: 14px; padding: 10px 20px; text-align: center; font-weight: 600; color: var(--red); animation: pendingPulse 1.5s ease-in-out infinite; width: 100%; max-width: 800px; }
@@ -191,7 +186,7 @@ body::before {
   .cookoff-side { min-width: 130px; padding: 14px 16px; }
   .cookoff-side .side-cards .co-card { width: 36px; height: 50px; }
   .title-rules { grid-template-columns: 1fr; }
-  .game-log { max-height: 140px; font-size: 0.85rem; }
+  .status-line { font-size: 0.9rem; }
 }
 </style>
 </head>
@@ -234,8 +229,7 @@ body::before {
     <button class="btn btn-roll" id="btn-roll" onclick="doRoll()">DRAW CARDS! 🃏</button>
     <button class="btn btn-continue hidden" id="btn-continue" onclick="nextTurn()">NEXT CHEF ➡️</button>
   </div>
-  <div class="game-log" id="game-log"></div>
-  <div class="cookoff-overlay" id="cookoff-overlay"></div>
+  <div class="status-line" id="status-line"></div>
 </div>
 
 <!-- VICTORY SCREEN -->
@@ -254,7 +248,7 @@ const FACE = { TICKET: 0, DUMP: 1, PLATE: 2, COOKOFF: 3 };
 const FACE_DATA = [
   { name: 'Ticket',   cls: 'ticket',  label: 'Still Cooking', color: '#b8a070' },
   { name: 'Dump',     cls: 'dump',    label: 'Not My Problem!', color: '#A855F7' },
-  { name: 'Plate',    cls: 'plate',   label: 'Order Up!', color: '#10B981' },
+  { name: 'Plate',    cls: 'plate',   label: 'Order Ready!', color: '#10B981' },
   { name: 'Cook-Off', cls: 'cookoff', label: 'COOK-OFF!', color: '#EF4444' },
 ];
 const PLAYER_COLORS = ['#FF6B35','#4ECDC4','#E63946','#7209B7','#06D6A0','#F472B6'];
@@ -283,10 +277,10 @@ const FUNNY_PLATES = [
 ];
 
 const CARD_SVG = {
-  ticket: '<svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg"><ellipse cx="22" cy="34" rx="14" ry="3" fill="rgba(0,0,0,0.15)"/><rect x="10" y="18" width="24" height="16" rx="2" fill="#8B7355" stroke="#6B5335" stroke-width="1.5"/><rect x="12" y="14" width="20" height="6" rx="1" fill="#A0522D" stroke="#6B5335" stroke-width="1"/><circle cx="16" cy="30" r="1" fill="#FF6B35"/><circle cx="22" cy="28" r="1.2" fill="#E63946"/><circle cx="28" cy="30" r="1" fill="#F7C948"/><path d="M18 14 Q18 8 22 6 Q26 8 26 14" fill="none" stroke="rgba(180,180,180,0.5)" stroke-width="1.5" stroke-linecap="round"/><path d="M20 12 Q20 7 22 5 Q24 7 24 12" fill="none" stroke="rgba(200,200,200,0.4)" stroke-width="1" stroke-linecap="round"/></svg>',
-  plate: '<svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg"><ellipse cx="22" cy="32" rx="16" ry="5" fill="rgba(255,255,255,0.2)" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"/><path d="M8 28 Q8 20 22 18 Q36 20 36 28" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/><ellipse cx="22" cy="28" rx="14" ry="4" fill="rgba(255,255,255,0.1)"/><path d="M12 24 Q22 12 32 24" fill="none" stroke="rgba(255,215,0,0.6)" stroke-width="1.5" stroke-dasharray="2 2"/><polygon points="18,6 19,9 22,9 20,11 21,14 18,12 15,14 16,11 14,9 17,9" fill="#F7C948" opacity="0.8"/><polygon points="28,4 28.7,6.5 31,6.5 29,8 29.7,10.5 28,9 26.2,10.5 26.8,8 25,6.5 27.3,6.5" fill="#F7C948" opacity="0.6"/></svg>',
-  dump: '<svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 20 Q6 18 8 16 L14 14 Q16 20 20 22 L28 24 Q30 22 32 24 L38 26" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2" stroke-linecap="round"/><ellipse cx="14" cy="28" rx="8" ry="3" fill="rgba(255,255,255,0.2)" stroke="rgba(255,255,255,0.4)" stroke-width="1"/><path d="M8 26 Q14 22 20 26" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1"/><line x1="30" y1="20" x2="38" y2="18" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/><line x1="30" y1="24" x2="40" y2="22" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" stroke-linecap="round"/><line x1="30" y1="28" x2="38" y2="27" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" stroke-linecap="round"/></svg>',
-  cookoff: '<svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10 34 L18 10 L22 14 L26 10 L34 34" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><line x1="18" y1="10" x2="26" y2="34" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/><line x1="26" y1="10" x2="18" y2="34" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/><path d="M6 32 Q10 22 14 28 Q18 16 22 24 Q26 14 30 26 Q34 20 38 32" fill="rgba(255,100,0,0.4)" stroke="rgba(255,150,0,0.6)" stroke-width="1"/><path d="M10 34 Q16 26 22 30 Q28 24 34 34" fill="rgba(255,50,0,0.3)" stroke="none"/><circle cx="22" cy="8" r="2" fill="#F7C948" opacity="0.6"/></svg>',
+  ticket: '<svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="9" y="6" width="26" height="34" rx="2" fill="#fff8e7" stroke="#c4a060" stroke-width="1.2" stroke-dasharray="3 2"/><rect x="12" y="10" width="14" height="2.5" rx="1" fill="#c4a060"/><rect x="12" y="15" width="20" height="1.5" rx=".75" fill="#e0cba0"/><rect x="12" y="19" width="17" height="1.5" rx=".75" fill="#e0cba0"/><rect x="12" y="23" width="20" height="1.5" rx=".75" fill="#e0cba0"/><rect x="12" y="27" width="12" height="1.5" rx=".75" fill="#e0cba0"/><circle cx="30" cy="33" r="4.5" fill="none" stroke="#c4a060" stroke-width="1.5"/><path d="M28 33 L29.5 34.8 L32.5 31.5" stroke="#c4a060" stroke-width="1.3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  plate: '<svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg"><ellipse cx="22" cy="30" rx="15" ry="5.5" fill="#d1fae5" stroke="#34d399" stroke-width="1.5"/><ellipse cx="22" cy="28" rx="12" ry="3.5" fill="#a7f3d0"/><path d="M12 26 C12 16, 22 12, 22 12 C22 12, 32 16, 32 26" fill="#6ee7b7" stroke="#34d399" stroke-width="1.3"/><path d="M18 20 C19 18, 22 17, 22 17 C22 17, 25 18, 26 20" fill="none" stroke="#34d399" stroke-width=".8" opacity=".6"/><polygon points="10,8 11,11 14,11 11.5,13 12.5,16 10,14 7.5,16 8.5,13 6,11 9,11" fill="#F7C948"/><polygon points="34,6 34.8,8.5 37,8.5 35.2,10 36,12.5 34,11 32,12.5 32.8,10 31,8.5 33.2,8.5" fill="#F7C948" opacity=".7"/><polygon points="22,4 22.5,6 24.5,6 23,7.2 23.5,9 22,8 20.5,9 21,7.2 19.5,6 21.5,6" fill="#fbbf24" opacity=".5"/></svg>',
+  dump: '<svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="16" width="22" height="16" rx="3" fill="#c4b5fd" stroke="#a78bfa" stroke-width="1.3"/><rect x="7" y="19" width="16" height="2" rx="1" fill="#8b5cf6" opacity=".5"/><rect x="7" y="23" width="12" height="2" rx="1" fill="#8b5cf6" opacity=".4"/><rect x="7" y="27" width="14" height="2" rx="1" fill="#8b5cf6" opacity=".3"/><path d="M28 22 L38 20" stroke="#fff" stroke-width="2.5" stroke-linecap="round" opacity=".9"/><path d="M28 26 L40 24" stroke="#fff" stroke-width="2.5" stroke-linecap="round" opacity=".7"/><path d="M28 30 L37 28.5" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".5"/><path d="M36 16 L40 14 L38 20" fill="#c4b5fd" stroke="#a78bfa" stroke-width="1" stroke-linejoin="round"/></svg>',
+  cookoff: '<svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 38 L6 10" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/><path d="M30 38 L38 10" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/><path d="M6 10 L14 10 L12 6 L10 10" fill="none" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/><path d="M38 10 L30 10 L32 6 L34 10" fill="none" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/><path d="M12 38 Q17 24 22 30 Q27 22 32 38" fill="#ef4444" opacity=".7"/><path d="M16 38 Q19 28 22 32 Q25 26 28 38" fill="#f97316" opacity=".8"/><path d="M19 38 Q21 32 22 34 Q23 30 25 38" fill="#fbbf24" opacity=".9"/><circle cx="14" cy="22" r="1.5" fill="#fbbf24" opacity=".6"/><circle cx="30" cy="20" r="1.5" fill="#fbbf24" opacity=".6"/></svg>',
   back: '<svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="6" y="6" width="32" height="32" rx="4" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.15)" stroke-width="1" stroke-dasharray="3 2"/><text x="22" y="27" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="18" font-weight="bold" font-family="Fredoka,sans-serif">?</text></svg>'
 };
 
@@ -350,7 +344,7 @@ function initTitleScreen() {
   $('title-rules').innerHTML =
     '<div class="rule-card">'+MINI_CARD_SVG.ticket+'<span class="rule-text"><strong>Ticket ×3</strong><br>Order stays at your station</span></div>'+
     '<div class="rule-card">'+MINI_CARD_SVG.dump+'<span class="rule-text"><strong>Dump ×1</strong><br>Pass to next chef!</span></div>'+
-    '<div class="rule-card">'+MINI_CARD_SVG.plate+'<span class="rule-text"><strong>Plate ×1</strong><br>Served! Gone forever</span></div>'+
+    '<div class="rule-card">'+MINI_CARD_SVG.plate+'<span class="rule-text"><strong>Plate ×1</strong><br>Order ready — served!</span></div>'+
     '<div class="rule-card">'+MINI_CARD_SVG.cookoff+'<span class="rule-text"><strong>Cook-Off ×1</strong><br>Showdown! Loser eats all</span></div>';
 }
 
@@ -376,7 +370,7 @@ function startGame() {
   }
   G.players=players;G.currentIndex=Math.floor(Math.random()*players.length);G.pendingMatch=null;G.turnNumber=0;
   G.stats={totalPlated:0,totalDumped:0,totalCookoffs:0,turns:0};
-  $('game-log').innerHTML='';showScreen('game');beginTurn();
+  $('status-line').innerHTML='';showScreen('game');beginTurn();
 }
 
 function nextPlayerIndex(from){return(from+1)%G.players.length;}
@@ -406,7 +400,7 @@ function renderPendingIndicator(){
   else{el.style.display='none';}
 }
 
-function addLog(msg,cls){const log=$('game-log');const div=document.createElement('div');div.className='log-entry'+(cls?' '+cls:'');div.innerHTML=msg;log.appendChild(div);log.scrollTop=log.scrollHeight;}
+function setStatus(msg,cls){const el=$('status-line');el.className='status-line'+(cls?' '+cls:'');el.innerHTML=msg;}
 
 function rollCards(count){const r=[];for(let i=0;i<count;i++){const v=Math.random()*6;if(v<3)r.push(FACE.TICKET);else if(v<4)r.push(FACE.DUMP);else if(v<5)r.push(FACE.PLATE);else r.push(FACE.COOKOFF);}return r;}
 function countFaces(results){const c=[0,0,0,0];results.forEach(f=>c[f]++);return{tickets:c[0],dumps:c[1],plates:c[2],cookoffs:c[3]};}
@@ -481,27 +475,27 @@ function makeCookoffCards(count,faceDown){
 }
 
 async function showCookoff(data) {
-  const ov=$('cookoff-overlay');playSound('clash');
+  const area=$('card-area');playSound('clash');
   if(data.type==='new_challenge'){
     const ch=getPlayer(data.challenger);const np=getPlayer(nextPlayerIndex(data.challenger));
-    ov.innerHTML='<div class="cookoff-title">🔥 COOK-OFF CHALLENGE! 🔥</div><div class="cookoff-versus"><div class="cookoff-side"><div class="side-name" style="color:'+ch.color+'">'+ch.name+'</div><div class="side-cards">'+makeCookoffCards(data.count,false)+'</div></div><div class="cookoff-vs">➡</div><div class="cookoff-side"><div class="side-name" style="color:'+np.color+'">'+np.name+'</div><div class="side-cards">'+makeCookoffCards(data.count,true)+'</div></div></div><div class="cookoff-result">'+ch.name+' throws down '+data.count+' card'+(data.count>1?'s':'')+'. Next chef must answer!</div>';
-    ov.classList.add('active');await wait(2500);ov.classList.remove('active');return;
+    area.innerHTML='<div class="cookoff-box"><div class="cookoff-title">🔥 COOK-OFF CHALLENGE! 🔥</div><div class="cookoff-versus"><div class="cookoff-side"><div class="side-name" style="color:'+ch.color+'">'+ch.name+'</div><div class="side-cards">'+makeCookoffCards(data.count,false)+'</div></div><div class="cookoff-vs">➡</div><div class="cookoff-side"><div class="side-name" style="color:'+np.color+'">'+np.name+'</div><div class="side-cards">'+makeCookoffCards(data.count,true)+'</div></div></div><div class="cookoff-result">'+ch.name+' throws down '+data.count+' card'+(data.count>1?'s':'')+'. Next chef must answer!</div></div>';
+    await wait(2500);return;
   }
   if(data.type==='tie'){
     const np=getPlayer(nextPlayerIndex(G.currentIndex));
-    ov.innerHTML='<div class="cookoff-title">⚡ TIE — REMATCH! ⚡</div><div class="cookoff-versus"><div class="cookoff-side"><div class="side-name">Challenger</div><div class="side-cards">'+makeCookoffCards(data.challengerCount,false)+'</div></div><div class="cookoff-vs">VS</div><div class="cookoff-side"><div class="side-name" style="color:'+currentPlayer().color+'">'+currentPlayer().name+'</div><div class="side-cards">'+makeCookoffCards(data.defenderCount,false)+'</div></div></div><div class="cookoff-result" style="color:var(--golden);">DEAD HEAT! '+data.total+' cards cascade to '+np.name+'! 🔥🔥🔥</div>';
-    ov.classList.add('active');playSound('cookoff');await wait(3000);ov.classList.remove('active');return;
+    area.innerHTML='<div class="cookoff-box"><div class="cookoff-title">⚡ TIE — REMATCH! ⚡</div><div class="cookoff-versus"><div class="cookoff-side"><div class="side-name">Challenger</div><div class="side-cards">'+makeCookoffCards(data.challengerCount,false)+'</div></div><div class="cookoff-vs">VS</div><div class="cookoff-side"><div class="side-name" style="color:'+currentPlayer().color+'">'+currentPlayer().name+'</div><div class="side-cards">'+makeCookoffCards(data.defenderCount,false)+'</div></div></div><div class="cookoff-result" style="color:var(--golden);">DEAD HEAT! '+data.total+' cards cascade to '+np.name+'! 🔥🔥🔥</div></div>';
+    playSound('cookoff');await wait(3000);return;
   }
   const winner=getPlayer(data.winner);const loser=getPlayer(data.loser);const leftP=data.type==='defender_wins'?loser:winner;
-  ov.innerHTML='<div class="cookoff-title">🔥 COOK-OFF! 🔥</div><div class="cookoff-versus"><div class="cookoff-side" id="co-left"><div class="side-name" style="color:'+leftP.color+'">'+leftP.name+'</div><div class="side-cards">'+makeCookoffCards(data.challengerCount,false)+'</div></div><div class="cookoff-vs">VS</div><div class="cookoff-side" id="co-right"><div class="side-name" style="color:'+currentPlayer().color+'">'+currentPlayer().name+'</div><div class="side-cards" id="co-right-cards">'+makeCookoffCards(data.defenderCount,true)+'</div></div></div><div class="cookoff-result" id="co-result" style="opacity:0;"></div>';
-  ov.classList.add('active');playSound('cookoff');await wait(1200);
-  const rc=ov.querySelector('#co-right-cards');
+  area.innerHTML='<div class="cookoff-box"><div class="cookoff-title">🔥 COOK-OFF! 🔥</div><div class="cookoff-versus"><div class="cookoff-side" id="co-left"><div class="side-name" style="color:'+leftP.color+'">'+leftP.name+'</div><div class="side-cards">'+makeCookoffCards(data.challengerCount,false)+'</div></div><div class="cookoff-vs">VS</div><div class="cookoff-side" id="co-right"><div class="side-name" style="color:'+currentPlayer().color+'">'+currentPlayer().name+'</div><div class="side-cards" id="co-right-cards">'+makeCookoffCards(data.defenderCount,true)+'</div></div></div><div class="cookoff-result" id="co-result" style="opacity:0;"></div></div>';
+  playSound('cookoff');await wait(1200);
+  const rc=area.querySelector('#co-right-cards');
   if(rc){const fd=rc.querySelectorAll('.face-down');const si=CARD_SVG.cookoff.replace(/<\/?svg[^>]*>/g,'');for(let i=0;i<fd.length;i++){await wait(300);fd[i].classList.remove('face-down');fd[i].style.background='linear-gradient(135deg,#DC2626,#F97316)';fd[i].style.border='2px solid #fbbf24';fd[i].innerHTML='<svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">'+si+'</svg>';playSound('flip');}}
   await wait(600);
-  const liw=(data.winner!==G.currentIndex);const le=ov.querySelector('#co-left');const re=ov.querySelector('#co-right');
+  const liw=(data.winner!==G.currentIndex);const le=area.querySelector('#co-left');const re=area.querySelector('#co-right');
   if(liw){le.classList.add('winner-side');re.classList.add('loser-side');}else{re.classList.add('winner-side');le.classList.add('loser-side');}
-  const res=ov.querySelector('#co-result');res.style.opacity='1';res.innerHTML='💥 '+winner.name+' wins! '+loser.name+' drowns in <strong>'+data.total+'</strong> orders!';
-  playSound('win');await wait(2800);ov.classList.remove('active');
+  const res=area.querySelector('#co-result');res.style.opacity='1';res.innerHTML='💥 '+winner.name+' wins! '+loser.name+' drowns in <strong>'+data.total+'</strong> orders!';
+  playSound('win');await wait(2800);
 }
 
 function beginTurn() {
@@ -512,7 +506,7 @@ function beginTurn() {
   $('turn-banner').innerHTML=(p.isAI?'🤖':'🧑‍🍳')+' <span style="color:'+p.color+'">'+p.name+"</span>'s Turn!";
   $('turn-banner').style.borderColor=p.color;
   $('btn-roll').classList.remove('hidden');$('btn-continue').classList.add('hidden');
-  if(p.isAI){$('btn-roll').classList.add('hidden');addLog('🤖 '+p.name+' sizes up the kitchen...');setTimeout(()=>doRoll(),800+Math.random()*600);}
+  if(p.isAI){$('btn-roll').classList.add('hidden');setStatus('🤖 '+p.name+' sizes up the kitchen...');setTimeout(()=>doRoll(),800+Math.random()*600);}
 }
 
 async function doRoll() {
@@ -521,13 +515,17 @@ async function doRoll() {
   const p=currentPlayer();const nextIdx=nextPlayerIndex(G.currentIndex);const nextP=getPlayer(nextIdx);
   try {
     const results=rollCards(p.cubes);const counts=countFaces(results);
-    addLog('🃏 '+p.name+' draws '+p.cubes+' card'+(p.cubes>1?'s':'')+'!');
+    setStatus('🃏 '+p.name+' draws '+p.cubes+' card'+(p.cubes>1?'s':'')+'!');
     const area=await animateCards(results);showRollSummary(counts);await wait(300);
     await animateResolution(area,counts);await wait(200);
 
-    if(counts.plates>0){p.cubes-=counts.plates;G.stats.totalPlated+=counts.plates;addLog('🍽️ '+tmpl(pick(FUNNY_PLATES),{name:p.name,count:counts.plates}));flashStation(G.currentIndex,'#10B981','-'+counts.plates);}
-    if(counts.dumps>0){p.cubes-=counts.dumps;nextP.cubes+=counts.dumps;G.stats.totalDumped+=counts.dumps;addLog('🫳 '+tmpl(pick(FUNNY_DUMPS),{name:p.name,count:counts.dumps,next:nextP.name}));flashStation(G.currentIndex,'#A855F7','-'+counts.dumps);flashStation(nextIdx,'#A855F7','+'+counts.dumps);}
-    if(counts.cookoffs>0){p.cubes-=counts.cookoffs;}
+    // Build single summary status
+    const parts=[];
+    if(counts.plates>0){p.cubes-=counts.plates;G.stats.totalPlated+=counts.plates;parts.push('🍽️ '+counts.plates+' served');flashStation(G.currentIndex,'#10B981','-'+counts.plates);}
+    if(counts.dumps>0){p.cubes-=counts.dumps;nextP.cubes+=counts.dumps;G.stats.totalDumped+=counts.dumps;parts.push('🫳 '+counts.dumps+' dumped on '+nextP.name);flashStation(G.currentIndex,'#A855F7','-'+counts.dumps);flashStation(nextIdx,'#A855F7','+'+counts.dumps);}
+    if(counts.tickets>0)parts.push('📋 '+counts.tickets+' still cooking');
+    if(counts.cookoffs>0){p.cubes-=counts.cookoffs;parts.push('🔥 '+counts.cookoffs+' cook-off!');}
+    setStatus(p.name+': '+parts.join(' · '));
     renderStations();await wait(300);
 
     let cr=null;
@@ -540,30 +538,31 @@ async function doRoll() {
     } else if(counts.cookoffs>0){G.pendingMatch={count:counts.cookoffs,challengerIndex:G.currentIndex};cr={type:'new_challenge',count:counts.cookoffs,challenger:G.currentIndex};}
 
     if(cr){
-      if(cr.type==='new_challenge')addLog('🔥 '+p.name+' challenges '+nextP.name+' with '+cr.count+' Cook-Off card'+(cr.count>1?'s':'')+'!','log-cookoff');
-      else if(cr.type==='tie')addLog('⚡ TIE! '+cr.total+' cards cascade to '+getPlayer(nextPlayerIndex(G.currentIndex)).name+'!','log-cookoff');
-      else{addLog('💥 '+getPlayer(cr.winner).name+' wins the Cook-Off! '+getPlayer(cr.loser).name+' eats '+cr.total+' orders!','log-cookoff');}
+      if(cr.type==='new_challenge')setStatus('🔥 '+p.name+' challenges '+nextP.name+' with '+cr.count+' Cook-Off card'+(cr.count>1?'s':'')+'!','status-cookoff');
+      else if(cr.type==='tie')setStatus('⚡ TIE! '+cr.total+' cards cascade to '+getPlayer(nextPlayerIndex(G.currentIndex)).name+'!','status-cookoff');
+      else setStatus('💥 '+getPlayer(cr.winner).name+' wins the Cook-Off! '+getPlayer(cr.loser).name+' eats '+cr.total+' orders!','status-cookoff');
       await showCookoff(cr);
       if(cr.loser!==undefined)flashStation(cr.loser,'#EF4444','+'+cr.total);
     }
     renderStations();renderPendingIndicator();
-    if(p.isAI){const chef=AI_CHEFS.find(c=>p.name.includes(c.name));if(chef&&Math.random()>0.5)addLog('💬 '+p.name+': "'+chef.quip+'"');}
     if(p.cubes<=0){p.cubes=0;await wait(500);victory(G.currentIndex);return;}
   } catch(err) {
     console.error('doRoll error:',err);
-    addLog('⚠️ Something went wrong — continuing...');
+    setStatus('⚠️ Something went wrong — continuing...');
   } finally {
-    $('btn-continue').classList.remove('hidden');
-    isAnimating=false;
-    if(currentPlayer().isAI&&G.phase==='game')setTimeout(()=>nextTurn(),1000+Math.random()*500);
+    if(G.phase!=='victory'){
+      $('btn-continue').classList.remove('hidden');
+      isAnimating=false;
+      if(currentPlayer().isAI&&G.phase==='game')setTimeout(()=>nextTurn(),1000+Math.random()*500);
+    }
   }
 }
 
 function nextTurn(){if(isAnimating)return;G.currentIndex=nextPlayerIndex(G.currentIndex);beginTurn();}
 
 function victory(winnerIndex) {
+  G.phase='victory';
   const p=getPlayer(winnerIndex);
-  addLog('🏆 '+p.name+' CLEARED THE STATION! GOLDEN LADLE WINNER!!! 🏆','log-win');
   playSound('win');
   $('winner-display').innerHTML='<span style="color:'+p.color+'">'+(p.isAI?'🤖':'🧑‍🍳')+' '+p.name+'</span>';
   $('victory-stats').innerHTML='<div class="stat-card"><div class="stat-val">'+G.stats.turns+'</div><div class="stat-label">Total Turns</div></div><div class="stat-card"><div class="stat-val">'+G.stats.totalPlated+'</div><div class="stat-label">Dishes Plated 🍽️</div></div><div class="stat-card"><div class="stat-val">'+G.stats.totalDumped+'</div><div class="stat-label">Orders Dumped 🫳</div></div><div class="stat-card"><div class="stat-val">'+G.stats.totalCookoffs+'</div><div class="stat-label">Cook-Offs 🔥</div></div>';
