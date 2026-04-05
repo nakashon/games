@@ -319,7 +319,7 @@ html[dir="rtl"] .player-row { border-left:none;border-right:4px solid var(--oran
 </head>
 <body>
 <div class="lang-toggle">
-  <button class="lang-btn" id="btn-music" onclick="toggleMusic()" title="Toggle music" style="font-size:1rem;padding:6px 10px;">🎵</button>
+  <button class="lang-btn" id="btn-sfx" onclick="toggleSfx()" title="Toggle sound" style="font-size:1rem;padding:6px 10px;">🔊</button>
   <button class="lang-btn active" id="lang-en" onclick="setLang('en')">EN</button>
   <button class="lang-btn" id="lang-he" onclick="setLang('he')">עב</button>
 </div>
@@ -678,54 +678,27 @@ const AudioCtx = window.AudioContext || window.webkitAudioContext;
 let audioCtx = null;
 function ensureAudio() { if (!audioCtx) audioCtx = new AudioCtx(); }
 function playSound(type) {
+  if(sfxMuted)return;
   try {
     ensureAudio();
-    const o = audioCtx.createOscillator();
-    const g = audioCtx.createGain();
-    o.connect(g); g.connect(audioCtx.destination);
     const now = audioCtx.currentTime;
+    function osc(t,f,f2,vol,dur){const o=audioCtx.createOscillator();const g=audioCtx.createGain();o.type=t;o.frequency.setValueAtTime(f,now);if(f2)o.frequency.exponentialRampToValueAtTime(f2,now+dur*0.8);g.gain.setValueAtTime(vol,now);g.gain.exponentialRampToValueAtTime(0.001,now+dur);o.connect(g);g.connect(audioCtx.destination);o.start(now);o.stop(now+dur);}
     switch(type) {
-      case 'roll': o.type='square'; o.frequency.setValueAtTime(200,now); o.frequency.exponentialRampToValueAtTime(600,now+0.15); g.gain.setValueAtTime(0.08,now); g.gain.exponentialRampToValueAtTime(0.001,now+0.2); o.start(now); o.stop(now+0.2); break;
-      case 'flip': o.type='sine'; o.frequency.setValueAtTime(600,now); o.frequency.exponentialRampToValueAtTime(900,now+0.1); g.gain.setValueAtTime(0.06,now); g.gain.exponentialRampToValueAtTime(0.001,now+0.15); o.start(now); o.stop(now+0.15); break;
-      case 'plate': o.type='sine'; o.frequency.setValueAtTime(800,now); o.frequency.exponentialRampToValueAtTime(1200,now+0.15); g.gain.setValueAtTime(0.1,now); g.gain.exponentialRampToValueAtTime(0.001,now+0.2); o.start(now); o.stop(now+0.2); break;
-      case 'dump': o.type='sawtooth'; o.frequency.setValueAtTime(300,now); o.frequency.exponentialRampToValueAtTime(100,now+0.2); g.gain.setValueAtTime(0.06,now); g.gain.exponentialRampToValueAtTime(0.001,now+0.25); o.start(now); o.stop(now+0.25); break;
-      case 'cookoff': o.type='sawtooth'; o.frequency.setValueAtTime(150,now); o.frequency.linearRampToValueAtTime(400,now+0.3); g.gain.setValueAtTime(0.12,now); g.gain.exponentialRampToValueAtTime(0.001,now+0.5); o.start(now); o.stop(now+0.5); break;
-      case 'win': o.type='square'; [523,659,784,1047].forEach((f,i)=>o.frequency.setValueAtTime(f,now+i*0.15)); g.gain.setValueAtTime(0.08,now); g.gain.exponentialRampToValueAtTime(0.001,now+0.7); o.start(now); o.stop(now+0.7); break;
-      case 'clash': o.type='sawtooth'; o.frequency.setValueAtTime(80,now); g.gain.setValueAtTime(0.15,now); g.gain.exponentialRampToValueAtTime(0.001,now+0.4); o.start(now); o.stop(now+0.4); break;
+      case 'roll': osc('square',200,600,0.07,0.15); break;
+      case 'flip': osc('square',500,800,0.05,0.1); break;
+      case 'ticket': osc('square',330,220,0.06,0.15); break;
+      case 'plate': osc('square',523,1047,0.08,0.2); setTimeout(()=>{if(!sfxMuted)osc('square',659,1318,0.06,0.15)},100); break;
+      case 'dump': osc('square',400,120,0.07,0.25); break;
+      case 'cookoff': osc('square',110,440,0.1,0.35); setTimeout(()=>{if(!sfxMuted)osc('sawtooth',80,200,0.08,0.3)},150); break;
+      case 'sendback': osc('square',500,200,0.07,0.2); setTimeout(()=>{if(!sfxMuted)osc('square',300,150,0.06,0.2)},120); break;
+      case 'win': [523,659,784,1047].forEach((f,i)=>setTimeout(()=>{if(!sfxMuted)osc('square',f,f*1.1,0.08,0.2)},i*120)); break;
+      case 'clash': osc('sawtooth',80,200,0.12,0.4); osc('square',150,300,0.06,0.3); break;
     }
   } catch(e) {}
 }
 
-/* Background Music System - 8-bit chiptune */
-let bgmOscillators=[];let bgmTimeout=null;let bgmPlaying=null;let musicMuted=false;let musicVol=0.08;
-// Mario-style 8-bit melody (C major bouncy kitchen theme)
-const BGM_NOTES=[
-  [523,0.25],[523,0.25],[0,0.25],[523,0.25],[0,0.25],[415,0.25],[523,0.25],[0,0.25],
-  [659,0.5],[0,0.5],[330,0.5],[0,0.25],
-  [392,0.25],[0,0.5],[262,0.25],[0,0.25],
-  [330,0.25],[0,0.25],[349,0.25],[330,0.25],[0,0.25],
-  [392,0.5],[523,0.5],[587,0.25],[494,0.25],[0,0.25],
-  [523,0.25],[0,0.25],[415,0.25],[440,0.25],[349,0.25],[0,0.25],
-  [392,0.25],[330,0.25],[262,0.25],[294,0.25],[247,0.5],[0,0.5]
-];
-const COOKOFF_NOTES=[
-  [165,0.25],[196,0.25],[220,0.25],[262,0.25],[220,0.25],[196,0.25],[165,0.25],[196,0.25],
-  [175,0.25],[208,0.25],[247,0.25],[294,0.25],[247,0.25],[208,0.25],[175,0.25],[208,0.25]
-];
-const VICTORY_NOTES=[
-  [523,0.2],[523,0.2],[523,0.2],[0,0.1],[523,0.3],[415,0.2],[523,0.2],[0,0.1],[659,0.4],[0,0.2],[784,0.6]
-];
-function stopBGM(){clearTimeout(bgmTimeout);bgmOscillators.forEach(o=>{try{o.stop();o.disconnect()}catch(e){}});bgmOscillators=[];bgmPlaying=null;}
-function playMelodyLoop(notes,loop,type,tempo,idx){
-  if(!audioCtx||musicMuted)return;if(idx>=notes.length){if(loop){bgmTimeout=setTimeout(()=>playMelodyLoop(notes,true,type,tempo,0),200)}return}
-  const[freq,dur]=notes[idx];const d=(60/tempo)*dur;
-  if(freq>0){ensureAudio();const o=audioCtx.createOscillator();const g=audioCtx.createGain();o.type=type;o.frequency.value=freq;g.gain.setValueAtTime(musicVol,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+d*0.9);o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+d*0.95);bgmOscillators.push(o);setTimeout(()=>{const i=bgmOscillators.indexOf(o);if(i>-1)bgmOscillators.splice(i,1)},d*1000+50)}
-  bgmTimeout=setTimeout(()=>playMelodyLoop(notes,loop,type,tempo,idx+1),d*1000);
-}
-function playBGM(){stopBGM();bgmPlaying='bgm';playMelodyLoop(BGM_NOTES,true,'square',160,0)}
-function playCookoffMusic(){stopBGM();bgmPlaying='cookoff';playMelodyLoop(COOKOFF_NOTES,true,'square',200,0)}
-function playVictoryFanfare(){stopBGM();playMelodyLoop(VICTORY_NOTES,false,'square',180,0)}
-function toggleMusic(){musicMuted=!musicMuted;if(musicMuted){stopBGM()}else if(bgmPlaying==='bgm'){playBGM()}else if(bgmPlaying==='cookoff'){playCookoffMusic()}const b=$('btn-music');if(b)b.textContent=musicMuted?'🔇':'🎵'}
+let sfxMuted=false;
+function toggleSfx(){sfxMuted=!sfxMuted;const b=$('btn-sfx');if(b)b.textContent=sfxMuted?'🔇':'🔊'}
 
 const $ = id => document.getElementById(id);
 const wait = ms => new Promise(r => setTimeout(r, ms));
@@ -842,7 +815,7 @@ function startGame() {
   G.players=players;G.currentIndex=Math.floor(Math.random()*players.length);G.pendingMatch=null;G.turnNumber=0;
   G.stats={totalPlated:0,totalDumped:0,totalCookoffs:0,totalSentBack:0,turns:0};
   G.seenCards={};
-  $('narrator').innerHTML='';$('cookoff-zone').innerHTML='';showScreen('game');playBGM();beginTurn();
+  $('narrator').innerHTML='';$('cookoff-zone').innerHTML='';showScreen('game');beginTurn();
 }
 
 function nextPlayerIndex(from){return(from+1)%G.players.length;}
@@ -990,7 +963,7 @@ async function resolveCardsOneByOne(area, results, p, nextP, nextIdx) {
     groups[FACE.TICKET].forEach(c=>c.classList.add('resolving'));
     showCardTooltip(groups[FACE.TICKET][0], FACE.TICKET);
     await wait(600);
-    playSound('flip');
+    playSound('ticket');
     const curS2 = document.getElementById('spot-'+G.currentIndex) || document.getElementById('station-'+G.currentIndex);
     for (const card of groups[FACE.TICKET]) {
       card.classList.remove('resolving');
@@ -1079,7 +1052,7 @@ async function animateSendBack(count, p) {
   const area = $('card-area');
   const f = FACE_DATA[FACE.SENDBACK];
   setStatus(ts('sendBack', {n: count}), 'status-sendback');
-  playSound('clash');
+  playSound('sendback');
   p.cubes += count;
   G.stats.totalSentBack += count;
 
@@ -1091,7 +1064,7 @@ async function animateSendBack(count, p) {
     area.appendChild(el);
     if (i === 0) showCardTooltip(el, FACE.SENDBACK);
     await wait(200);
-    playSound('dump');
+    playSound('sendback');
   }
   await wait(400);
 
@@ -1179,7 +1152,7 @@ function makeCookoffCards(count,faceDown){
 }
 
 async function showCookoff(data) {
-  const zone=$('cookoff-zone');playSound('clash');playCookoffMusic();
+  const zone=$('cookoff-zone');playSound('clash');
   if(data.type==='new_challenge'){
     const ch=getPlayer(data.challenger);
     zone.innerHTML='<div class="cz-row"><span class="cz-name" style="color:'+ch.color+'">'+(ch.avatar||'🧑‍🍳')+' '+ch.name+'</span><div class="cz-cards">'+makeCookoffCards(data.count,false)+'</div></div>';
@@ -1193,7 +1166,7 @@ async function showCookoff(data) {
   playSound('cookoff');await wait(800);
   // Flip defender cards
   const fd=zone.querySelectorAll('.face-down');const si=CARD_SVG.cookoff.replace(/<\/?svg[^>]*>/g,'');
-  for(let i=0;i<fd.length;i++){await wait(300);fd[i].classList.remove('face-down');fd[i].style.background='linear-gradient(135deg,#DC2626,#F97316)';fd[i].style.border='2px solid #fbbf24';fd[i].innerHTML='<svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">'+si+'</svg>';playSound('flip');}
+  for(let i=0;i<fd.length;i++){await wait(300);fd[i].classList.remove('face-down');fd[i].style.background='linear-gradient(135deg,#DC2626,#F97316)';fd[i].style.border='2px solid #fbbf24';fd[i].innerHTML='<svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">'+si+'</svg>';playSound('cookoff');}
   await wait(500);
   // Show winner result
   const winner=getPlayer(data.winner);const loser=getPlayer(data.loser);
@@ -1214,7 +1187,7 @@ async function showCookoff(data) {
     }
     await wait(400);
   } else { await wait(800); }
-  zone.innerHTML='';playBGM();
+  zone.innerHTML='';
 }
 
 function beginTurn() {
@@ -1292,7 +1265,7 @@ function victory(winnerIndex) {
   G.phase='victory';
   G.isFirstGame=false;
   const p=getPlayer(winnerIndex);
-  playSound('win');playVictoryFanfare();
+  playSound('win');
   $('victory-title').textContent=t('victoryTitle');
   $('victory-subtitle').textContent=t('victorySubtitle');
   $('winner-display').innerHTML='<span style="color:'+p.color+'">'+(p.avatar||'🧑‍🍳')+' '+p.name+'</span>';
