@@ -159,12 +159,8 @@ body::before {
 @keyframes blinkRed { 0%{box-shadow:0 0 0 rgba(239,68,68,0)} 50%{box-shadow:0 0 30px rgba(239,68,68,.7)} 100%{box-shadow:0 0 0 rgba(239,68,68,0)} }
 .station.blink-gold { animation:blinkGold .4s ease-out; }
 @keyframes blinkGold { 0%{box-shadow:0 0 0 rgba(247,201,72,0)} 50%{box-shadow:0 0 30px rgba(247,201,72,.7)} 100%{box-shadow:0 0 0 rgba(247,201,72,0)} }
-.roll-summary { text-align: center; padding: 8px; font-size: 1rem; min-height: 30px; color: var(--text-muted); }
-.roll-summary span { margin: 0 6px; font-weight: 600; }
-.roll-summary .s-ticket { color: #b8a070; }
-.roll-summary .s-dump { color: var(--purple); }
-.roll-summary .s-plate { color: var(--green); }
-.roll-summary .s-cookoff { color: var(--red); }
+
+
 .btn-roll { background: linear-gradient(135deg, var(--golden), #ffb800); color: #1a0a00; font-size: 1.5rem; padding: 16px 60px; border-radius: 50px; box-shadow: 0 4px 20px rgba(247,201,72,0.4); animation: rollPulse 2s ease-in-out infinite; }
 .btn-roll:hover { box-shadow: 0 8px 35px rgba(247,201,72,0.6); animation: none; }
 @keyframes rollPulse { 0%, 100% { box-shadow: 0 4px 20px rgba(247,201,72,0.4); } 50% { box-shadow: 0 4px 35px rgba(247,201,72,0.7); } }
@@ -248,6 +244,23 @@ body::before {
 .confetti-piece { position: absolute; width: 10px; height: 10px; top: -20px; animation: confettiFall linear forwards; }
 @keyframes confettiFall { 0% { transform: translateY(0) rotate(0deg); opacity: 1; } 100% { transform: translateY(110vh) rotate(720deg); opacity: 0; } }
 
+/* Visual polish */
+@keyframes steamWisp { 0%{transform:translateY(0) scaleX(1);opacity:0} 40%{opacity:.06} 100%{transform:translateY(-60px) scaleX(1.3);opacity:0} }
+@keyframes pulseBorder { 0%,100%{box-shadow:0 0 8px rgba(247,201,72,.3)} 50%{box-shadow:0 0 20px rgba(247,201,72,.6),0 0 40px rgba(247,201,72,.2)} }
+@keyframes narratorIn { 0%{transform:translateY(12px);opacity:0} 100%{transform:translateY(0);opacity:1} }
+.game-screen { position:relative; }
+.game-screen::before { content:'';position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;background:radial-gradient(circle at 15% 20%,rgba(255,255,255,.04) 0%,transparent 50%),radial-gradient(circle at 75% 40%,rgba(255,255,255,.03) 0%,transparent 50%),radial-gradient(circle at 45% 80%,rgba(255,255,255,.05) 0%,transparent 50%);animation:steamWisp 8s infinite ease-in-out alternate;z-index:0; }
+.card-container { transition:transform .2s ease; }
+.card-container:hover { transform:translateY(-4px); }
+.card-ticket:hover .card-front { box-shadow:0 0 16px rgba(247,201,72,.5),0 0 30px rgba(247,201,72,.2) !important; }
+.card-plate:hover .card-front { box-shadow:0 0 16px rgba(16,185,129,.5),0 0 30px rgba(16,185,129,.2) !important; }
+.card-dump:hover .card-front { box-shadow:0 0 16px rgba(168,85,247,.5),0 0 30px rgba(168,85,247,.2) !important; }
+.card-cookoff:hover .card-front { box-shadow:0 0 16px rgba(230,57,70,.5),0 0 30px rgba(230,57,70,.2) !important; }
+.card-sendback:hover .card-front { box-shadow:0 0 16px rgba(217,119,6,.5),0 0 30px rgba(217,119,6,.2) !important; }
+.spot-station.active { animation:pulseBorder 2s ease-in-out infinite; }
+.narrator { animation:narratorIn .5s ease-out; }
+.kitchen-area { background-image:repeating-linear-gradient(45deg,rgba(255,255,255,.02) 0px,rgba(255,255,255,.02) 1px,transparent 1px,transparent 10px),repeating-linear-gradient(-45deg,rgba(255,255,255,.02) 0px,rgba(255,255,255,.02) 1px,transparent 1px,transparent 10px); }
+
 @media (max-width: 600px) {
   .station { min-width: 90px; padding: 10px 10px; }
   .station-count { font-size: 1.3rem; }
@@ -306,6 +319,7 @@ html[dir="rtl"] .player-row { border-left:none;border-right:4px solid var(--oran
 </head>
 <body>
 <div class="lang-toggle">
+  <button class="lang-btn" id="btn-music" onclick="toggleMusic()" title="Toggle music" style="font-size:1rem;padding:6px 10px;">🎵</button>
   <button class="lang-btn active" id="lang-en" onclick="setLang('en')">EN</button>
   <button class="lang-btn" id="lang-he" onclick="setLang('he')">עב</button>
 </div>
@@ -352,7 +366,7 @@ html[dir="rtl"] .player-row { border-left:none;border-right:4px solid var(--oran
   <div id="cookoff-zone"></div>
   <div class="kitchen-area" id="kitchen-area">
     <div class="card-area" id="card-area"></div>
-    <div class="roll-summary" id="roll-summary"></div>
+
     <button class="btn btn-roll" id="btn-roll" onclick="doRoll()">DRAW CARDS! 🃏</button>
     <button class="btn btn-continue hidden" id="btn-continue" onclick="nextTurn()">NEXT CHEF ➡️</button>
   </div>
@@ -415,12 +429,12 @@ const FUNNY_PLATES = [
 ];
 
 const CARD_SVG = {
-  ticket: '<svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="10" y="24" width="24" height="14" rx="3" fill="#d4a060" stroke="#a07840" stroke-width="1"/><ellipse cx="22" cy="24" rx="12" ry="3" fill="#c49050"/><ellipse cx="22" cy="24" rx="10" ry="2.5" fill="#e8c080"/><path d="M16 22 Q16 18 18 16" stroke="#a0a0a0" stroke-width="1.5" stroke-linecap="round" fill="none" opacity=".5"/><path d="M22 21 Q22 16 24 13" stroke="#a0a0a0" stroke-width="1.5" stroke-linecap="round" fill="none" opacity=".6"/><path d="M28 22 Q28 17 26 15" stroke="#a0a0a0" stroke-width="1.5" stroke-linecap="round" fill="none" opacity=".4"/><rect x="8" y="36" width="28" height="3" rx="1.5" fill="#888" opacity=".3"/></svg>',
-  plate: '<svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg"><ellipse cx="22" cy="28" rx="16" ry="6" fill="#d1fae5" stroke="#34d399" stroke-width="1.2"/><ellipse cx="22" cy="26" rx="12" ry="4" fill="#a7f3d0"/><circle cx="22" cy="22" r="6" fill="#6ee7b7" stroke="#34d399" stroke-width="1"/><path d="M19 22 L21 24.5 L25.5 19" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10 L8 13" stroke="#F7C948" stroke-width="1.5" stroke-linecap="round"/><path d="M4 13 L9 12" stroke="#F7C948" stroke-width="1.5" stroke-linecap="round"/><path d="M38 8 L36 11" stroke="#F7C948" stroke-width="1.5" stroke-linecap="round"/><path d="M40 11 L35 10" stroke="#F7C948" stroke-width="1.5" stroke-linecap="round"/></svg>',
-  dump: '<svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 28 Q6 24 10 22 L16 20 Q18 19 20 20 L22 22" fill="#c4b5fd" stroke="#8b5cf6" stroke-width="1.2"/><ellipse cx="32" cy="26" rx="8" ry="3" fill="#ddd6fe" stroke="#a78bfa" stroke-width="1"/><rect x="28" y="20" width="8" height="6" rx="2" fill="#c4b5fd" stroke="#a78bfa" stroke-width="1"/><path d="M36 18 L40 16" stroke="#a78bfa" stroke-width="1.5" stroke-linecap="round" opacity=".8"/><path d="M37 22 L41 21" stroke="#a78bfa" stroke-width="1.5" stroke-linecap="round" opacity=".6"/><path d="M36 26 L40 26" stroke="#a78bfa" stroke-width="1.5" stroke-linecap="round" opacity=".4"/><text x="22" y="38" text-anchor="middle" fill="#8b5cf6" font-size="6" font-weight="bold" font-family="sans-serif" opacity=".6">→→</text></svg>',
-  cookoff: '<svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 38 L20 8" stroke="#fef3c7" stroke-width="2" stroke-linecap="round"/><path d="M30 38 L24 8" stroke="#fef3c7" stroke-width="2" stroke-linecap="round"/><path d="M17 8 L20 8 L19 4 L17.5 8Z" fill="#e2e8f0" stroke="#fbbf24" stroke-width=".6"/><path d="M27 8 L24 8 L25 4 L26.5 8Z" fill="#e2e8f0" stroke="#fbbf24" stroke-width=".6"/><path d="M20 8 L20 5" stroke="#cbd5e1" stroke-width="1.2" stroke-linecap="round"/><path d="M24 8 L24 5" stroke="#cbd5e1" stroke-width="1.2" stroke-linecap="round"/><path d="M14 38 Q18 26 22 30 Q26 24 30 38" fill="#ef4444" opacity=".7"/><path d="M17 38 Q20 28 22 31 Q24 27 27 38" fill="#f97316" opacity=".8"/><path d="M19 38 Q21 31 22 33 Q23 30 25 38" fill="#fbbf24" opacity=".9"/><circle cx="15" cy="20" r="1.2" fill="#fbbf24" opacity=".5"/><circle cx="29" cy="18" r="1.2" fill="#fbbf24" opacity=".5"/></svg>',
-  back: '<svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="36" height="36" rx="5" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/><rect x="8" y="8" width="28" height="28" rx="3" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1" stroke-dasharray="4 3"/><text x="22" y="26" text-anchor="middle" fill="rgba(255,255,255,0.35)" font-size="16" font-weight="bold" font-family="Fredoka,sans-serif">?</text><circle cx="12" cy="12" r="2" fill="rgba(255,255,255,.06)"/><circle cx="32" cy="32" r="2" fill="rgba(255,255,255,.06)"/></svg>',
-  sendback: '<svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg"><ellipse cx="22" cy="28" rx="14" ry="5" fill="#fde68a" stroke="#d97706" stroke-width="1"/><rect x="14" y="18" width="16" height="10" rx="2" fill="#fbbf24" stroke="#d97706" stroke-width="1"/><path d="M22 14 L22 6" stroke="#d97706" stroke-width="2" stroke-linecap="round"/><path d="M18 10 L22 6 L26 10" stroke="#d97706" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M16 22 L19 22" stroke="#92400e" stroke-width="1" stroke-linecap="round" opacity=".5"/><path d="M25 22 L28 22" stroke="#92400e" stroke-width="1" stroke-linecap="round" opacity=".5"/><text x="22" y="37" text-anchor="middle" fill="#92400e" font-size="5" font-weight="bold" font-family="sans-serif" opacity=".6">!!!</text></svg>'
+  ticket: '<svg viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg"><rect x="10" y="10" width="24" height="28" rx="2" fill="#F8F0E3" stroke="#D3C1A5" stroke-width="1"/><polygon points="20,10 24,10 22,4" fill="#8B4513"/><line x1="14" y1="16" x2="30" y2="16" stroke="#c4a882" stroke-width="1.5" stroke-dasharray="3,2"/><line x1="14" y1="21" x2="30" y2="21" stroke="#c4a882" stroke-width="1.5" stroke-dasharray="3,2"/><line x1="14" y1="26" x2="26" y2="26" stroke="#c4a882" stroke-width="1.5" stroke-dasharray="3,2"/><path d="M10 32 h2 v2 h2 v-2 h2 v2 h2 v-2 h2 v2 h2 v-2 h2 v2 h2 v-2 h2 v2 h2 v4 H10z" fill="#F8F0E3" stroke="#D3C1A5" stroke-width="0.5"/></svg>',
+  plate: '<svg viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg"><ellipse cx="22" cy="26" rx="17" ry="8" fill="#10B981" stroke="#059669" stroke-width="1.2"/><ellipse cx="22" cy="24" rx="13" ry="5.5" fill="#34d399"/><path d="M18 23 L20.5 26 L27 19" stroke="#F7C948" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><line x1="6" y1="10" x2="9" y2="13" stroke="#F7C948" stroke-width="1.5"/><line x1="4" y1="14" x2="8" y2="12" stroke="#F7C948" stroke-width="1.5"/><line x1="38" y1="9" x2="35" y2="12" stroke="#F7C948" stroke-width="1.5"/><line x1="40" y1="13" x2="36" y2="11" stroke="#F7C948" stroke-width="1.5"/><line x1="22" y1="4" x2="22" y2="8" stroke="#F7C948" stroke-width="1.5"/><line x1="20" y1="6" x2="24" y2="6" stroke="#F7C948" stroke-width="1.5"/></svg>',
+  dump: '<svg viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg"><polygon points="12,18 32,18 29,38 15,38" fill="#A855F7" stroke="#7C3AED" stroke-width="1.2"/><rect x="10" y="15" width="24" height="4" rx="1" fill="#c084fc"/><ellipse cx="22" cy="15" rx="12" ry="2" fill="#ddd6fe" opacity=".4"/><circle cx="18" cy="10" r="2" fill="#c4b5fd" opacity=".8"/><circle cx="24" cy="7" r="1.8" fill="#ddd6fe" opacity=".7"/><circle cx="28" cy="11" r="1.5" fill="#c4b5fd" opacity=".6"/><line x1="19" y1="12" x2="17" y2="9" stroke="#c4b5fd" stroke-width="1" stroke-dasharray="2,1"/><line x1="25" y1="12" x2="26" y2="8" stroke="#c4b5fd" stroke-width="1" stroke-dasharray="2,1"/></svg>',
+  cookoff: '<svg viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg"><path d="M22 6 C16 14 14 24 18 34 L22 38 L26 34 C30 24 28 14 22 6Z" fill="#E63946" opacity=".8"/><path d="M22 10 C18 16 17 24 20 32 L22 35 L24 32 C27 24 26 16 22 10Z" fill="#F97316" opacity=".9"/><path d="M22 15 C20 20 19 26 21 31 L22 33 L23 31 C25 26 24 20 22 15Z" fill="#FBBF24"/><line x1="8" y1="34" x2="36" y2="10" stroke="#F7C948" stroke-width="2.5" stroke-linecap="round"/><line x1="8" y1="10" x2="36" y2="34" stroke="#F7C948" stroke-width="2.5" stroke-linecap="round"/><circle cx="8" cy="10" r="2" fill="#e2e8f0" stroke="#F7C948" stroke-width=".8"/><circle cx="36" cy="10" r="2" fill="#e2e8f0" stroke="#F7C948" stroke-width=".8"/></svg>',
+  back: '<svg viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="36" height="36" rx="4" fill="#3d2b16" stroke="#5a3a1a" stroke-width="1.5"/><polygon points="22,8 36,22 22,36 8,22" fill="none" stroke="#7a5a3a" stroke-width="1.5"/><polygon points="22,13 31,22 22,31 13,22" fill="none" stroke="#5a3a1a" stroke-width="1"/><ellipse cx="22" cy="19" rx="5" ry="4" fill="rgba(255,255,255,.15)"/><rect x="18" y="23" width="8" height="5" rx="1" fill="rgba(255,255,255,.15)"/><circle cx="12" cy="12" r="1.5" fill="#7a5a3a" opacity=".5"/><circle cx="32" cy="12" r="1.5" fill="#7a5a3a" opacity=".5"/><circle cx="12" cy="32" r="1.5" fill="#7a5a3a" opacity=".5"/><circle cx="32" cy="32" r="1.5" fill="#7a5a3a" opacity=".5"/></svg>',
+  sendback: '<svg viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg"><ellipse cx="22" cy="28" rx="14" ry="5" fill="#FBBF24" stroke="#D97706" stroke-width="1"/><rect x="15" y="20" width="14" height="8" rx="2" fill="#FDE68A" stroke="#D97706" stroke-width=".8"/><path d="M30 16 C34 16 34 10 30 10 L18 10" stroke="#E63946" stroke-width="2" fill="none" stroke-linecap="round"/><polygon points="18,7 14,10 18,13" fill="#E63946"/><rect x="20" y="34" width="2.5" height="5" rx="1" fill="#E63946"/><circle cx="21.2" cy="40.5" r="1.5" fill="#E63946"/></svg>'
 };
 
 const MINI_CARD_SVG = {
@@ -682,6 +696,23 @@ function playSound(type) {
   } catch(e) {}
 }
 
+/* Background Music System */
+let bgmOscillators=[];let bgmTimeout=null;let bgmPlaying=null;let musicMuted=false;let musicVol=0.12;
+const BGM_NOTES=[[261.63,1],[329.63,1],[392,1],[493.88,1],[392,1],[329.63,1],[261.63,1],[0,1]];
+const COOKOFF_NOTES=[[185,0.5],[261.63,0.5],[196,0.5],[293.66,0.5],[185,0.5],[261.63,0.5],[196,0.5],[293.66,0.5]];
+const VICTORY_NOTES=[[261.63,0.75],[329.63,0.75],[392,0.75],[523.25,1.5]];
+function stopBGM(){clearTimeout(bgmTimeout);bgmOscillators.forEach(o=>{try{o.stop();o.disconnect()}catch(e){}});bgmOscillators=[];bgmPlaying=null;}
+function playMelodyLoop(notes,loop,type,tempo,idx){
+  if(!audioCtx||musicMuted)return;if(idx>=notes.length){if(loop){bgmTimeout=setTimeout(()=>playMelodyLoop(notes,true,type,tempo,0),100)}return}
+  const[freq,dur]=notes[idx];const d=(60/tempo)*dur;
+  if(freq>0){ensureAudio();const o=audioCtx.createOscillator();const g=audioCtx.createGain();o.type=type;o.frequency.value=freq;g.gain.value=musicVol;o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+d*0.85);bgmOscillators.push(o);setTimeout(()=>{const i=bgmOscillators.indexOf(o);if(i>-1)bgmOscillators.splice(i,1)},d*1000+50)}
+  bgmTimeout=setTimeout(()=>playMelodyLoop(notes,loop,type,tempo,idx+1),d*1000);
+}
+function playBGM(){stopBGM();bgmPlaying='bgm';playMelodyLoop(BGM_NOTES,true,'sine',100,0)}
+function playCookoffMusic(){stopBGM();bgmPlaying='cookoff';playMelodyLoop(COOKOFF_NOTES,true,'triangle',180,0)}
+function playVictoryFanfare(){stopBGM();playMelodyLoop(VICTORY_NOTES,false,'sawtooth',140,0)}
+function toggleMusic(){musicMuted=!musicMuted;if(musicMuted){stopBGM()}else if(bgmPlaying==='bgm'){playBGM()}else if(bgmPlaying==='cookoff'){playCookoffMusic()}const b=$('btn-music');if(b)b.textContent=musicMuted?'🔇':'🎵'}
+
 const $ = id => document.getElementById(id);
 const wait = ms => new Promise(r => setTimeout(r, ms));
 function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
@@ -797,7 +828,7 @@ function startGame() {
   G.players=players;G.currentIndex=Math.floor(Math.random()*players.length);G.pendingMatch=null;G.turnNumber=0;
   G.stats={totalPlated:0,totalDumped:0,totalCookoffs:0,totalSentBack:0,turns:0};
   G.seenCards={};
-  $('narrator').innerHTML='';$('cookoff-zone').innerHTML='';showScreen('game');beginTurn();
+  $('narrator').innerHTML='';$('cookoff-zone').innerHTML='';showScreen('game');playBGM();beginTurn();
 }
 
 function nextPlayerIndex(from){return(from+1)%G.players.length;}
@@ -1127,14 +1158,6 @@ function updateStationCount(idx, count) {
   if (spot) spot.innerHTML = count + '<small> ' + (count !== 1 ? t('cards') : t('card')) + '</small>';
 }
 
-function showRollSummary(counts) {
-  const el=$('roll-summary');const p=[];
-  if(counts.tickets>0)p.push('<span class="s-ticket">📋×'+counts.tickets+'</span>');
-  if(counts.dumps>0)p.push('<span class="s-dump">🫳×'+counts.dumps+'</span>');
-  if(counts.plates>0)p.push('<span class="s-plate">🍽️×'+counts.plates+'</span>');
-  if(counts.cookoffs>0)p.push('<span class="s-cookoff">🔥×'+counts.cookoffs+'</span>');
-  el.innerHTML=p.join('  ');
-}
 
 function makeCookoffCards(count,faceDown){
   let h='';const si=CARD_SVG.cookoff.replace(/<\/?svg[^>]*>/g,'');
@@ -1142,7 +1165,7 @@ function makeCookoffCards(count,faceDown){
 }
 
 async function showCookoff(data) {
-  const zone=$('cookoff-zone');playSound('clash');
+  const zone=$('cookoff-zone');playSound('clash');playCookoffMusic();
   if(data.type==='new_challenge'){
     const ch=getPlayer(data.challenger);
     zone.innerHTML='<div class="cz-row"><span class="cz-name" style="color:'+ch.color+'">'+(ch.avatar||'🧑‍🍳')+' '+ch.name+'</span><div class="cz-cards">'+makeCookoffCards(data.count,false)+'</div></div>';
@@ -1177,14 +1200,14 @@ async function showCookoff(data) {
     }
     await wait(400);
   } else { await wait(800); }
-  zone.innerHTML='';
+  zone.innerHTML='';playBGM();
 }
 
 function beginTurn() {
   isAnimating=false;hasRolled=false;const p=currentPlayer();
   if(p.cubes<=0){p.cubes=0;if(G.pendingMatch)G.pendingMatch=null;victory(G.currentIndex);return;}
   G.turnNumber++;G.stats.turns++;renderStations();
-  $('card-area').innerHTML='';$('roll-summary').innerHTML='';
+  $('card-area').innerHTML='';
   $('turn-banner').innerHTML=(p.avatar||'🧑‍🍳')+' <span style="color:'+p.color+'">'+ts('turnOf',{name:p.name})+"</span>";
   $('turn-banner').style.borderColor=p.color;
   $('btn-roll').classList.remove('hidden');$('btn-continue').classList.add('hidden');
@@ -1198,7 +1221,7 @@ async function doRoll() {
   try {
     const results=rollCards(p.cubes);const counts=countFaces(results);
     setStatus(ts('draws',{name:p.name,n:p.cubes,s:p.cubes>1?'s':'',v:gv(p,'שולף','שולפת')}));
-    const area=await animateCards(results);showRollSummary(counts);await wait(300);
+    const area=await animateCards(results);await wait(300);
 
     // Resolve each card one by one with animations
     await resolveCardsOneByOne(area, results, p, nextP, nextIdx);
@@ -1255,7 +1278,7 @@ function victory(winnerIndex) {
   G.phase='victory';
   G.isFirstGame=false;
   const p=getPlayer(winnerIndex);
-  playSound('win');
+  playSound('win');playVictoryFanfare();
   $('victory-title').textContent=t('victoryTitle');
   $('victory-subtitle').textContent=t('victorySubtitle');
   $('winner-display').innerHTML='<span style="color:'+p.color+'">'+(p.avatar||'🧑‍🍳')+' '+p.name+'</span>';
