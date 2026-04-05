@@ -85,7 +85,7 @@ body::before {
 
 /* Game Screen */
 #screen-game { justify-content: flex-start; padding: 16px; min-height: 100vh; gap: 12px; }
-.turn-banner { font-size: clamp(1.2rem, 4vw, 1.8rem); font-weight: 700; text-align: center; padding: 10px 24px; border-radius: 16px; background: rgba(255,255,255,0.06); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); width: 100%; max-width: 800px; border: 2px solid rgba(255,255,255,0.1); animation: bannerPop 0.4s ease-out; }
+.turn-banner { font-size: clamp(1.2rem, 4vw, 1.8rem); font-weight: 700; text-align: center; padding: 10px 24px; border-radius: 16px; background: rgba(255,255,255,0.06); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); width: 100%; max-width: 900px; border: 2px solid rgba(255,255,255,0.1); animation: bannerPop 0.4s ease-out; }
 @keyframes bannerPop { 0% { transform: scale(0.8); opacity: 0; } 50% { transform: scale(1.05); } 100% { transform: scale(1); opacity: 1; } }
 
 /* Stations */
@@ -118,7 +118,7 @@ body::before {
 .group-label { position:absolute;top:-28px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.7);color:var(--text-warm);padding:4px 14px;border-radius:8px;font-size:.85rem;font-weight:600;white-space:nowrap;z-index:20;animation:fadeIn .3s ease-out;pointer-events:none; }
 
 /* Kitchen + Cards */
-.kitchen-area { background: rgba(255,255,255,0.05); border-radius: 20px; padding: 20px; width: 100%; max-width: 800px; border: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column; align-items: center; min-height: 260px; position: relative; overflow: hidden; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+.kitchen-area { background: rgba(255,255,255,0.05); border-radius: 20px; padding: 20px; width: 100%; max-width: 900px; border: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column; align-items: center; min-height: 180px; position: relative; overflow: hidden; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
 .card-area { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; padding: 10px; min-height: 130px; width: 100%; perspective: 800px; }
 .card-container { width: 80px; height: 110px; perspective: 600px; position: relative; }
 .card-inner { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.5s ease; }
@@ -195,7 +195,7 @@ body::before {
 @keyframes fadeIn { from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)} }
 
 /* Narrator */
-.narrator { width:100%;max-width:800px;text-align:center;padding:14px 24px;border-radius:14px;font-family:'Patrick Hand',cursive;font-size:1.25rem;color:var(--text-warm);min-height:56px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.08);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1.5px solid rgba(255,255,255,.08);transition:all .3s;line-height:1.4; }
+.narrator { width:100%;max-width:900px;text-align:center;padding:14px 24px;border-radius:14px;font-family:'Patrick Hand',cursive;font-size:1.25rem;color:var(--text-warm);min-height:56px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.08);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1.5px solid rgba(255,255,255,.08);transition:all .3s;line-height:1.4; }
 .narrator.status-cookoff { color:#fca5a5;background:rgba(229,62,62,.15);border-color:rgba(230,57,70,.3); }
 .narrator.status-win { color:var(--golden);background:rgba(247,201,72,.15);border-color:rgba(247,201,72,.3);font-weight:600; }
 .narrator.status-plate { color:#6ee7b7;background:rgba(72,187,120,.12);border-color:rgba(16,185,129,.25); }
@@ -204,7 +204,7 @@ body::before {
 .narrator.status-sendback { color:#fcd34d;background:rgba(237,137,54,.12);border-color:rgba(217,119,6,.25); }
 
 /* Cook-off Zone */
-#cookoff-zone { width:100%;max-width:800px;min-height:0;transition:all .3s; }
+#cookoff-zone { width:100%;max-width:900px;min-height:0;transition:all .3s; }
 #cookoff-zone:empty { display:none; }
 .cz-row { display:flex;align-items:center;justify-content:center;gap:8px;padding:10px;background:rgba(229,62,62,.08);border:1.5px solid rgba(229,62,62,.3);border-radius:12px;animation:fadeIn .4s ease-out; }
 .cz-name { font-weight:600;font-size:1rem;white-space:nowrap; }
@@ -272,6 +272,10 @@ body::before {
   /* Layout & screens */
   .screen { padding: 12px 8px; }
   .kitchen-area { padding: 12px 8px; min-height: 180px; border-radius: 14px; }
+
+  /* Game nav */
+  .game-nav { margin-bottom: -2px; }
+  .btn-nav { padding: 4px 8px; font-size: 1rem; min-width: 40px; min-height: 40px; }
 
   /* Buttons */
   .btn { padding: 10px 20px; font-size: 1rem; width: 100%; box-sizing: border-box; }
@@ -391,7 +395,7 @@ html[dir="rtl"] .player-row { border-left:none;border-right:4px solid var(--oran
 .sb-chip.sb-active { border-color:var(--golden);background:rgba(247,201,72,.1); }
 .sb-chip.sb-next { border-color:var(--teal);background:rgba(78,205,196,.1); }
 .spotlight-row { display:flex;gap:16px;justify-content:center;width:100%;max-width:900px;align-items:stretch; }
-.spot-station { flex:1;max-width:400px;background:rgba(255,255,255,0.05);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-radius:16px;padding:16px 20px;border:2.5px solid rgba(255,255,255,.08);transition:all .3s;position:relative;overflow:hidden;min-height:100px; }
+.spot-station { flex:1 1 0;max-width:400px;min-width:0;background:rgba(255,255,255,0.05);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-radius:16px;padding:16px 20px;border:2.5px solid rgba(255,255,255,.08);transition:all .3s;position:relative;overflow:hidden;min-height:100px; }
 .spot-station::before { content:'';position:absolute;top:0;left:0;right:0;height:5px;border-radius:16px 16px 0 0; }
 .spot-station.spot-active { border-color:var(--golden);box-shadow:0 0 25px rgba(247,201,72,.3); }
 .spot-station.spot-active::before { background:var(--golden); }
@@ -405,7 +409,7 @@ html[dir="rtl"] .player-row { border-left:none;border-right:4px solid var(--oran
 .spot-count small { font-size:.75rem;font-weight:400;color:var(--text-muted); }
 .spot-pile { margin-top:8px;display:flex;align-items:flex-end;height:32px;position:relative; }
 .spot-pile .pile-card { width:22px;height:30px;border-radius:3px;background:linear-gradient(135deg,#2D3748,#4A5568);border:1px solid rgba(255,255,255,.15);position:absolute;bottom:0;box-shadow:0 1px 3px rgba(0,0,0,.4); }
-.spot-vs { display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:var(--text-muted);padding:0 4px; }
+.spot-vs { flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:var(--text-muted);padding:0 4px; }
 /* Blink + punch for new elements */
 .spot-station.blink-green,.sb-chip.blink-green { animation:blinkGreen .4s ease-out; }
 .spot-station.blink-purple,.sb-chip.blink-purple { animation:blinkPurple .4s ease-out; }
@@ -414,11 +418,14 @@ html[dir="rtl"] .player-row { border-left:none;border-right:4px solid var(--oran
 .sb-count.count-punch,.spot-count.count-punch { animation:countPunch .4s ease-out; }
 .sb-count.count-shrink,.spot-count.count-shrink { animation:countShrink .4s ease-out; }
 
+.game-nav { display:flex;gap:8px;width:100%;max-width:900px;justify-content:flex-end;padding:0 4px;margin-bottom:-4px; }
+.btn-nav { background:rgba(255,255,255,0.06);border:1.5px solid rgba(255,255,255,0.1);border-radius:10px;padding:6px 10px;font-size:1.1rem;cursor:pointer;color:var(--text-muted);transition:all .2s;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center; }
+.btn-nav:hover { background:rgba(255,255,255,0.12);color:var(--text-warm);transform:scale(1.05); }
+
 </style>
 </head>
 <body>
 <div class="lang-toggle">
-  <button class="lang-btn" id="btn-sfx" onclick="toggleSfx()" title="Toggle sound" style="font-size:1rem;padding:6px 10px;">🔊</button>
   <button class="lang-btn active" id="lang-en" onclick="setLang('en')">EN</button>
   <button class="lang-btn" id="lang-he" onclick="setLang('he')">עב</button>
 </div>
@@ -459,6 +466,11 @@ html[dir="rtl"] .player-row { border-left:none;border-right:4px solid var(--oran
 
 <!-- GAME SCREEN -->
 <div id="screen-game" class="screen">
+  <div class="game-nav">
+    <button class="btn-nav" onclick="confirmHome()">🏠</button>
+    <button class="btn-nav" onclick="confirmRestart()">🔄</button>
+    <button class="btn-nav" id="btn-sfx" onclick="toggleSfx()">🔊</button>
+  </div>
   <div class="turn-banner" id="turn-banner"></div>
   <div class="scoreboard-strip" id="scoreboard-strip"></div>
   <div class="spotlight-row" id="spotlight-row"></div>
@@ -809,6 +821,17 @@ function showScreen(name) {
   $('screen-' + name).classList.add('active');
   G.phase = name;
   if (name === 'setup') initSetup();
+}
+
+function confirmHome() {
+  if (confirm(currentLang === 'he' ? 'לחזור לדף הבית?' : 'Back to home screen?')) {
+    showScreen('title');
+  }
+}
+function confirmRestart() {
+  if (confirm(currentLang === 'he' ? 'להתחיל מחדש?' : 'Restart the game?')) {
+    startGame();
+  }
 }
 
 function initTitleScreen() {
