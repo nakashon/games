@@ -271,10 +271,10 @@ body::before {
 @media (max-width: 600px) {
   /* Layout & screens */
   .screen { padding: 12px 8px; }
-  .kitchen-area { padding: 12px 8px; min-height: 180px; border-radius: 14px; }
+  .kitchen-area { padding: 12px 8px; min-height: 160px; border-radius: 14px; margin-top: 4px; border: 1.5px solid rgba(255,255,255,0.12); }
 
-  /* Game nav */
-  .game-nav { margin-bottom: -2px; }
+  /* Game nav — avoid lang-toggle overlap */
+  .game-nav { margin-bottom: -2px; margin-top: 36px; }
   .btn-nav { padding: 4px 8px; font-size: 1rem; min-width: 40px; min-height: 40px; }
 
   /* Buttons */
@@ -312,9 +312,16 @@ body::before {
   .sb-chip .sb-avatar { font-size: 0.95rem; }
   .sb-chip .sb-count { font-size: 0.85rem; }
 
-  /* Spotlight row */
-  .spotlight-row { flex-direction: column; gap: 8px; }
-  .spot-station { max-width: 100%; padding: 10px 12px; min-height: 70px; border-radius: 12px; }
+  /* Spotlight row — compact on mobile */
+  .spotlight-row { flex-direction: row; gap: 6px; align-items: center; }
+  .spot-station { max-width: 100%; padding: 8px 10px; min-height: auto; border-radius: 10px; flex: 1 1 0; min-width: 0; }
+  .spot-label { font-size: .6rem; margin-bottom: 2px; }
+  .spot-name { font-size: .95rem; gap: 4px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .spot-name span { font-size: 1.2rem !important; }
+  .spot-count { font-size: 1.3rem; gap: 4px; }
+  .spot-count small { font-size: .6rem; }
+  .spot-pile { display: none; }
+  .spot-vs { font-size: 1rem; padding: 0; flex: 0 0 auto; }
 
   /* Cook-off zone */
   .cz-row { flex-wrap: wrap; gap: 6px; padding: 8px; }
@@ -365,7 +372,9 @@ body::before {
   .sb-chip { padding: 3px 6px; font-size: 0.65rem; }
   .sb-chip .sb-count { font-size: 0.75rem; }
 
-  .spot-station { padding: 8px 8px; min-height: 60px; }
+  .spot-station { padding: 6px 8px; min-height: auto; }
+  .spot-name { font-size: .85rem; }
+  .spot-count { font-size: 1.1rem; }
   .cookoff-side { min-width: 90px; padding: 8px 8px; }
   .cookoff-side .side-name { font-size: 0.8rem; }
   .cookoff-side .side-cards .co-card { width: 30px; height: 42px; }
