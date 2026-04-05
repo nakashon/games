@@ -999,21 +999,25 @@ function makeCookoffCards(count,faceDown){
 
 async function showCookoff(data) {
   const area=$('card-area');playSound('clash');
+  // Update spotlight labels without moving players
+  const activeLabel=document.querySelector('.spot-active .spot-label');
+  const nextLabel=document.querySelector('.spot-next .spot-label');
+  const savedLabels={a:activeLabel?activeLabel.textContent:'',n:nextLabel?nextLabel.textContent:''};
   if(data.type==='new_challenge'){
     const ch=getPlayer(data.challenger);const np=getPlayer(nextPlayerIndex(data.challenger));
-    const chalLabel=currentLang==='he'?'🔥 מאתגר':'🔥 CHALLENGER';
-    const defLabel=currentLang==='he'?'🛡️ מאותגר':'🛡️ DEFENDER';
-    renderSpotlightPair(data.challenger, nextPlayerIndex(data.challenger), chalLabel, defLabel);
+    if(activeLabel)activeLabel.textContent=currentLang==='he'?'🔥 מאתגר':'🔥 CHALLENGER';
+    if(nextLabel)nextLabel.textContent=currentLang==='he'?'🛡️ מאותגר':'🛡️ DEFENDER';
     area.innerHTML='<div class="cookoff-box"><div class="cookoff-title">'+t('challengeTitle')+'</div><div class="cookoff-versus"><div class="cookoff-side"><div class="side-name" style="color:'+ch.color+'">'+ch.name+'</div><div class="side-cards">'+makeCookoffCards(data.count,false)+'</div></div><div class="cookoff-vs">'+(currentLang==='he'?'⬅':'➡')+'</div><div class="cookoff-side"><div class="side-name" style="color:'+np.color+'">'+np.name+'</div><div class="side-cards">'+makeCookoffCards(data.count,true)+'</div></div></div><div class="cookoff-result">'+ts('throwsDown',{name:ch.name,n:data.count,s:data.count>1?'s':''})+'</div></div>';
-    await wait(2500);return;
+    await wait(2500);
+    if(activeLabel)activeLabel.textContent=savedLabels.a;if(nextLabel)nextLabel.textContent=savedLabels.n;
+    return;
   }
-  // Resolution: show challenger (left) vs defender/current (right)
+  // Resolution: current player is defender, challenger from pendingMatch
+  const defender=currentPlayer();
   const chalIdx=data.type==='defender_wins'?data.loser:data.winner;
-  const defIdx=G.currentIndex;
-  const challenger=getPlayer(chalIdx);const defender=currentPlayer();
-  const chalLabel=currentLang==='he'?'🔥 מאתגר':'🔥 CHALLENGER';
-  const defLabel=currentLang==='he'?'🛡️ מאותגר':'🛡️ DEFENDER';
-  renderSpotlightPair(chalIdx, defIdx, chalLabel, defLabel);
+  const challenger=getPlayer(chalIdx);
+  if(activeLabel)activeLabel.textContent=currentLang==='he'?'🛡️ מאותגר':'🛡️ DEFENDER';
+  if(nextLabel)nextLabel.textContent=currentLang==='he'?'🔥 מאתגר':'🔥 CHALLENGER';
 
   area.innerHTML='<div class="cookoff-box"><div class="cookoff-title">'+t('cookoffTitle')+'</div><div class="cookoff-versus"><div class="cookoff-side" id="co-left"><div class="side-name" style="color:'+challenger.color+'">'+challenger.name+'</div><div class="side-cards">'+makeCookoffCards(data.challengerCount,false)+'</div></div><div class="cookoff-vs">'+t('vs')+'</div><div class="cookoff-side" id="co-right"><div class="side-name" style="color:'+defender.color+'">'+defender.name+'</div><div class="side-cards" id="co-right-cards">'+makeCookoffCards(data.defenderCount,true)+'</div></div></div><div class="cookoff-result" id="co-result" style="opacity:0;"></div></div>';
   playSound('cookoff');await wait(1200);
@@ -1023,8 +1027,8 @@ async function showCookoff(data) {
   await wait(600);
   // Show winner/loser
   const winner=getPlayer(data.winner);const loser=getPlayer(data.loser);
-  const liw=(data.winner!==defIdx);const le=area.querySelector('#co-left');const re=area.querySelector('#co-right');
-  if(liw){le.classList.add('winner-side');re.classList.add('loser-side');}else{re.classList.add('winner-side');le.classList.add('loser-side');}
+  const le=area.querySelector('#co-left');const re=area.querySelector('#co-right');
+  if(data.winner===chalIdx){le.classList.add('winner-side');re.classList.add('loser-side');}else{re.classList.add('winner-side');le.classList.add('loser-side');}
   const res=area.querySelector('#co-result');res.style.opacity='1';res.innerHTML=ts('cookoffResult',{winner:winner.name,loser:loser.name,n:data.total});
   playSound('win');await wait(1200);
   // Fly cards to loser's station
@@ -1045,6 +1049,8 @@ async function showCookoff(data) {
     }
     await wait(500);
   } else { await wait(1600); }
+  // Restore labels
+  if(activeLabel)activeLabel.textContent=savedLabels.a;if(nextLabel)nextLabel.textContent=savedLabels.n;
 }
 
 function beginTurn() {
