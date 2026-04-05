@@ -197,6 +197,23 @@ body::before {
 
 /* Victory */
 #screen-victory { gap: 20px; text-align: center; }
+
+/* Tutorial */
+#screen-tutorial { gap: 20px; text-align: center; max-width: 500px; }
+.tut-step { animation: fadeIn .4s ease-out; }
+.tut-card-display { width: 120px; height: 168px; border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; box-shadow: 0 8px 30px rgba(0,0,0,.5); }
+.tut-card-display svg { width: 64px; height: 64px; }
+.tut-card-name { font-size: 1.6rem; font-weight: 700; font-family: 'Patrick Hand', cursive; margin-bottom: 8px; }
+.tut-card-desc { font-size: 1.15rem; color: var(--text-warm); line-height: 1.5; padding: 0 10px; margin-bottom: 16px; font-family: 'Patrick Hand', cursive; }
+.tut-example { background: rgba(255,255,255,.06); border: 1.5px solid rgba(255,255,255,.1); border-radius: 12px; padding: 12px 16px; font-size: 1rem; color: var(--text-muted); line-height: 1.4; margin-bottom: 16px; font-family: 'Patrick Hand', cursive; }
+.tut-nav { display: flex; gap: 12px; justify-content: center; align-items: center; }
+.tut-dots { display: flex; gap: 6px; justify-content: center; margin-bottom: 10px; }
+.tut-dot { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,.2); transition: all .3s; }
+.tut-dot.active { background: var(--golden); transform: scale(1.3); }
+.btn-tut { padding: 10px 28px; border-radius: 30px; font-size: 1rem; font-weight: 600; cursor: pointer; border: none; transition: all .2s; }
+.btn-tut-next { background: linear-gradient(135deg, var(--golden), #ffb800); color: #1a0a00; }
+.btn-tut-skip { background: rgba(255,255,255,.1); color: var(--text-muted); }
+.btn-tut:hover { transform: scale(1.05); }
 .victory-title { font-size: clamp(2rem, 7vw, 3.5rem); font-weight: 700; color: var(--golden); text-shadow: 0 4px 0 #b8860b, 0 8px 30px rgba(0,0,0,0.4); animation: titleBounce 2s ease-in-out infinite; }
 .winner-display { font-size: clamp(1.5rem, 5vw, 2.5rem); font-weight: 600; padding: 16px 40px; border-radius: 20px; background: rgba(247,201,72,0.15); border: 2px solid var(--golden); }
 .victory-subtitle { font-size: 1.2rem; color: var(--text-muted); font-family: 'Patrick Hand', cursive; }
@@ -278,11 +295,21 @@ html[dir="rtl"] .player-row { border-left:none;border-right:4px solid var(--oran
   </div>
   <div class="title-rules" id="title-rules"></div>
   <div class="title-goal">🏁 First chef to clear all orders wins!</div>
-  <button class="btn btn-primary" onclick="showScreen('setup')">START COOKING! 🔥</button>
+  <button class="btn btn-primary" onclick="startTutorial()">START COOKING! 🔥</button>
 </div>
 
 <!-- SETUP SCREEN -->
 <div id="screen-setup" class="screen">
+
+<!-- TUTORIAL SCREEN -->
+<div id="screen-tutorial" class="screen">
+  <div class="tut-dots" id="tut-dots"></div>
+  <div id="tut-content"></div>
+  <div class="tut-nav">
+    <button class="btn btn-tut btn-tut-skip" id="tut-skip" onclick="endTutorial()"></button>
+    <button class="btn btn-tut btn-tut-next" id="tut-next" onclick="nextTutStep()"></button>
+  </div>
+</div>
   <div class="setup-title">🧑‍🍳 Kitchen Setup</div>
   <p style="color:var(--text-muted); margin-bottom: 8px;">How many chefs in the kitchen?</p>
   <div class="count-selector" id="count-selector"></div>
@@ -448,6 +475,27 @@ const STRINGS = {
     tipDump: 'Slide this order to the next chef\'s station!',
     tipCookoff: 'Challenge! Compare cook-off orders — loser cooks them all!',
     tipSendback: 'A customer sent a dish back! Cook it again!',
+    tutNext: 'Next ➡️',
+    tutSkip: 'Skip Tutorial',
+    tutDone: 'Let\'s Cook! 🔥',
+    tutTicketName: '📋 Ticket Order',
+    tutTicketDesc: 'This order stays at your station. Nothing happens — you\'ll deal with it later.',
+    tutTicketExample: 'Example: You draw 3 Tickets → they all stay with you. No movement.',
+    tutDumpName: '🫳 Dump Order',
+    tutDumpDesc: 'Pass this order to the next chef! It leaves your station and lands on theirs.',
+    tutDumpExample: 'Example: You draw 1 Dump → it flies to the next chef. Their count goes up, yours goes down!',
+    tutPlateName: '🍽️ Plate Order',
+    tutPlateDesc: 'This order is served to the customer! It disappears from the game entirely.',
+    tutPlateExample: 'Example: You draw 2 Plates → 2 orders are served and gone forever. Your count drops!',
+    tutCookoffName: '🔥 Cook-Off Order',
+    tutCookoffDesc: 'Challenge the next chef! They must match or beat your cook-off orders, or take ALL of them.',
+    tutCookoffExample: 'Example: You play 2 Cook-Offs → next chef needs 2+ cook-offs to win. If they fail, they eat all the orders!',
+    tutSendbackName: '😤 Send It Back!',
+    tutSendbackDesc: 'A customer returns a dish to your kitchen! Extra orders come back to you at random.',
+    tutSendbackExample: 'This is random — sometimes 1, 2, or even 3 orders come back. Bad luck!',
+    tutGoalName: '🏆 How to Win',
+    tutGoalDesc: 'Be the first chef to get rid of ALL your orders. Plate them, dump them, just get to zero!',
+    tutGoalExample: 'Everyone starts with 10 orders. Clear your station first to become the Golden Chef!',
   },
   he: {
     title: '🍳 !יותר מידי טבחים במטבח 🔥',
@@ -513,6 +561,27 @@ const STRINGS = {
     tipDump: 'העבר את ההזמנה לטבח הבא!',
     tipCookoff: 'אתגר! השוו הזמנות קרב — המפסיד צריך לבשל את הכל!',
     tipSendback: 'לקוח החזיר מנה! בשל אותה שוב!',
+    tutNext: '➡️ הבא',
+    tutSkip: 'דלג על ההדרכה',
+    tutDone: '!יאללה לבשל 🔥',
+    tutTicketName: '📋 הזמנה רגילה',
+    tutTicketDesc: 'ההזמנה נשארת אצלך בתחנה. שום דבר לא קורה — תטפל בזה אחר כך.',
+    tutTicketExample: 'דוגמה: שלפת 3 הזמנות רגילות → כולן נשארות אצלך.',
+    tutDumpName: '🫳 העברת הזמנה',
+    tutDumpDesc: 'תעביר את ההזמנה לטבח הבא! היא עוזבת את התחנה שלך ונוחתת אצלו.',
+    tutDumpExample: 'דוגמה: שלפת העברה אחת → היא עפה לטבח הבא. לו עולה, לך יורד!',
+    tutPlateName: '🍽️ מנה מוגשת',
+    tutPlateDesc: 'המנה מוגשת ללקוח! היא נעלמת מהמשחק לגמרי.',
+    tutPlateExample: 'דוגמה: שלפת 2 מנות מוגשות → 2 הזמנות נעלמות. המספר שלך יורד!',
+    tutCookoffName: '🔥 קרב טבחים',
+    tutCookoffDesc: 'אתגר לטבח הבא! הוא חייב להשוות או לגבור, אחרת הוא לוקח את כל ההזמנות.',
+    tutCookoffExample: 'דוגמה: שלפת 2 קרבות → הטבח הבא צריך 2+ קרבות כדי לנצח. אם לא — הוא מבשל הכל!',
+    tutSendbackName: '😤 מנה חזרה!',
+    tutSendbackDesc: 'לקוח החזיר מנה למטבח! הזמנות נוספות חוזרות אליך באקראי.',
+    tutSendbackExample: 'זה אקראי — לפעמים חוזרת הזמנה אחת, שתיים או אפילו שלוש. מזל רע!',
+    tutGoalName: '🏆 איך מנצחים',
+    tutGoalDesc: 'היו הטבח הראשון שמסיים את כל ההזמנות. הגישו, העבירו, פשוט תגיעו לאפס!',
+    tutGoalExample: 'כולם מתחילים עם 10 הזמנות. נקו את התחנה ראשונים כדי להפוך לשף הזהב!',
   }
 };
 function t(key){ return STRINGS[currentLang][key] || STRINGS.en[key] || key; }
@@ -612,6 +681,48 @@ function initTitleScreen() {
     '<div class="rule-card">'+MINI_CARD_SVG.cookoff+'<span class="rule-text">'+t('ruleCookoff')+'</span></div>'+
     '<div class="rule-card">'+MINI_CARD_SVG.sendback+'<span class="rule-text">'+t('ruleSendback')+'</span></div>';
 }
+
+let tutStep = 0;
+const TUT_STEPS = [
+  { key: 'Ticket',   bg: 'linear-gradient(135deg,#f5e6c8,#e8d5a8)', border: '2px dashed #c4a060', color: '#c4a060', svg: 'ticket' },
+  { key: 'Plate',    bg: 'linear-gradient(135deg,#059669,#10B981)', border: '2px solid #F7C948', color: '#10B981', svg: 'plate' },
+  { key: 'Dump',     bg: 'linear-gradient(135deg,#7C3AED,#A855F7)', border: '2px solid #c084fc', color: '#A855F7', svg: 'dump' },
+  { key: 'Cookoff',  bg: 'linear-gradient(135deg,#DC2626,#F97316)', border: '2px solid #fbbf24', color: '#EF4444', svg: 'cookoff' },
+  { key: 'Sendback', bg: 'linear-gradient(135deg,#D97706,#F59E0B)', border: '2px solid #fbbf24', color: '#F59E0B', svg: 'sendback' },
+  { key: 'Goal',     bg: 'linear-gradient(135deg,#F7C948,#ffb800)', border: '2px solid #b8860b', color: '#F7C948', svg: null },
+];
+
+function startTutorial() {
+  if (!G.isFirstGame) { showScreen('setup'); return; }
+  tutStep = 0;
+  showScreen('tutorial');
+  renderTutStep();
+}
+
+function renderTutStep() {
+  const s = TUT_STEPS[tutStep];
+  const dots = $('tut-dots');
+  dots.innerHTML = TUT_STEPS.map((_, i) => '<div class="tut-dot' + (i === tutStep ? ' active' : '') + '"></div>').join('');
+  const cardHtml = s.svg
+    ? '<div class="tut-card-display" style="background:'+s.bg+';border:'+s.border+';">' + CARD_SVG[s.svg] + '</div>'
+    : '<div class="tut-card-display" style="background:'+s.bg+';border:'+s.border+';font-size:3.5rem;">🏆</div>';
+  $('tut-content').innerHTML = '<div class="tut-step">' + cardHtml +
+    '<div class="tut-card-name" style="color:'+s.color+';">' + t('tut'+s.key+'Name') + '</div>' +
+    '<div class="tut-card-desc">' + t('tut'+s.key+'Desc') + '</div>' +
+    '<div class="tut-example">' + t('tut'+s.key+'Example') + '</div></div>';
+  const isLast = tutStep === TUT_STEPS.length - 1;
+  $('tut-next').textContent = isLast ? t('tutDone') : t('tutNext');
+  $('tut-skip').textContent = t('tutSkip');
+  $('tut-skip').style.display = isLast ? 'none' : '';
+}
+
+function nextTutStep() {
+  if (tutStep >= TUT_STEPS.length - 1) { endTutorial(); return; }
+  tutStep++;
+  renderTutStep();
+}
+
+function endTutorial() { showScreen('setup'); }
 
 function initSetup() {
   const sel=$('count-selector'); sel.innerHTML='';
