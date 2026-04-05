@@ -186,10 +186,10 @@ body::before {
 .cookoff-result { margin-top:12px;font-size:1.05rem;font-weight:600;text-align:center;animation:fadeIn .5s ease-out; }
 @keyframes fadeIn { from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)} }
 
-/* Status Line */
-.status-line { width:100%;max-width:800px;text-align:center;padding:10px 18px;border-radius:12px;font-family:'Patrick Hand',cursive;font-size:1.1rem;color:var(--warm);min-height:44px;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.06);animation:fadeIn .3s ease-out; }
-.status-line.status-cookoff { color:#fca5a5;background:rgba(230,57,70,.12);border-color:rgba(230,57,70,.3); }
-.status-line.status-win { color:var(--golden);background:rgba(247,201,72,.12);border-color:rgba(247,201,72,.3);font-size:1.3rem;font-weight:600; }
+/* Narrator */
+.narrator { width:100%;max-width:800px;text-align:center;padding:14px 24px;border-radius:14px;font-family:'Patrick Hand',cursive;font-size:1.25rem;color:var(--text-warm);min-height:56px;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.35);border:1.5px solid rgba(255,255,255,.08);transition:all .3s;line-height:1.4; }
+.narrator.status-cookoff { color:#fca5a5;background:rgba(230,57,70,.15);border-color:rgba(230,57,70,.3);font-size:1.3rem; }
+.narrator.status-win { color:var(--golden);background:rgba(247,201,72,.15);border-color:rgba(247,201,72,.3);font-size:1.4rem;font-weight:600; }
 
 /* Pending */
 .pending-indicator { background: linear-gradient(135deg, rgba(230,57,70,0.2), rgba(230,57,70,0.1)); border: 2px solid var(--red); border-radius: 14px; padding: 10px 20px; text-align: center; font-weight: 600; color: var(--red); animation: pendingPulse 1.5s ease-in-out infinite; width: 100%; max-width: 800px; }
@@ -217,7 +217,7 @@ body::before {
   .cookoff-side { min-width: 130px; padding: 14px 16px; }
   .cookoff-side .side-cards .co-card { width: 36px; height: 50px; }
   .title-rules { grid-template-columns: 1fr; }
-  .status-line { font-size: 0.9rem; }
+  .narrator { font-size: 0.9rem; }
 }
 .lang-toggle { position:fixed;top:12px;right:12px;z-index:100;display:flex;gap:4px;background:rgba(0,0,0,.5);border-radius:20px;padding:4px;backdrop-filter:blur(8px); }
 .lang-btn { padding:6px 14px;border-radius:16px;border:none;font-size:.85rem;font-weight:600;cursor:pointer;transition:all .2s;background:transparent;color:var(--text-muted);font-family:'Fredoka',sans-serif; }
@@ -225,6 +225,40 @@ body::before {
 .lang-btn:hover:not(.active) { background:rgba(255,255,255,.1); }
 html[dir="rtl"] .station.active::after { right:auto;left:8px; }
 html[dir="rtl"] .player-row { border-left:none;border-right:4px solid var(--orange); }
+/* Scoreboard strip + Spotlight */
+.scoreboard-strip { display:flex;gap:8px;justify-content:center;flex-wrap:wrap;width:100%;max-width:900px; }
+.sb-chip { display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:20px;background:rgba(0,0,0,.3);border:1.5px solid rgba(255,255,255,.08);font-size:.8rem;transition:all .3s; }
+.sb-chip .sb-avatar { font-size:1.1rem; }
+.sb-chip .sb-count { font-weight:700;font-size:1rem; }
+.sb-chip.sb-active { border-color:var(--golden);background:rgba(247,201,72,.1); }
+.sb-chip.sb-next { border-color:var(--teal);background:rgba(78,205,196,.1); }
+.spotlight-row { display:flex;gap:16px;justify-content:center;width:100%;max-width:900px;align-items:stretch; }
+.spot-station { flex:1;max-width:400px;background:linear-gradient(180deg,var(--bg-wood) 0%,#231205 100%);border-radius:16px;padding:16px 20px;border:2.5px solid rgba(255,255,255,.08);transition:all .3s;position:relative;overflow:hidden;min-height:100px; }
+.spot-station::before { content:'';position:absolute;top:0;left:0;right:0;height:5px;border-radius:16px 16px 0 0; }
+.spot-station.spot-active { border-color:var(--golden);box-shadow:0 0 25px rgba(247,201,72,.3); }
+.spot-station.spot-active::before { background:var(--golden); }
+.spot-station.spot-next { border-color:var(--teal);box-shadow:0 0 15px rgba(78,205,196,.15); }
+.spot-station.spot-next::before { background:var(--teal); }
+.spot-label { font-size:.7rem;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:4px; }
+.spot-label.label-active { color:var(--golden); }
+.spot-label.label-next { color:var(--teal); }
+.spot-name { font-size:1.3rem;font-weight:700;display:flex;align-items:center;gap:8px;margin-bottom:6px; }
+.spot-count { font-size:2rem;font-weight:700;display:flex;align-items:center;gap:6px; }
+.spot-count small { font-size:.75rem;font-weight:400;color:var(--text-muted); }
+.spot-pile { margin-top:8px;display:flex;align-items:flex-end;height:32px;position:relative; }
+.spot-pile .pile-card { width:22px;height:30px;border-radius:3px;background:linear-gradient(135deg,#5a3a1a,#7a5a3a);border:1px solid rgba(255,255,255,.15);position:absolute;bottom:0;box-shadow:0 1px 3px rgba(0,0,0,.4); }
+.spot-vs { display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:var(--text-muted);padding:0 4px; }
+/* Blink + punch for new elements */
+.spot-station.blink-green,.sb-chip.blink-green { animation:blinkGreen .4s ease-out; }
+.spot-station.blink-purple,.sb-chip.blink-purple { animation:blinkPurple .4s ease-out; }
+.spot-station.blink-red,.sb-chip.blink-red { animation:blinkRed .4s ease-out; }
+.spot-station.blink-gold,.sb-chip.blink-gold { animation:blinkGold .4s ease-out; }
+.sb-count.count-punch,.spot-count.count-punch { animation:countPunch .4s ease-out; }
+.sb-count.count-shrink,.spot-count.count-shrink { animation:countShrink .4s ease-out; }
+/* Card tooltip */
+.card-tooltip { position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:rgba(0,0,0,.9);color:var(--text-warm);padding:10px 14px;border-radius:10px;font-size:.8rem;font-family:'Fredoka',sans-serif;white-space:nowrap;z-index:50;pointer-events:none;animation:tooltipPop .3s ease-out;border:1px solid rgba(255,255,255,.15);max-width:200px;white-space:normal;text-align:center; }
+.card-tooltip::after { content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:6px solid transparent;border-top-color:rgba(0,0,0,.9); }
+@keyframes tooltipPop { 0%{opacity:0;transform:translateX(-50%) translateY(5px)} 100%{opacity:1;transform:translateX(-50%) translateY(0)} }
 </style>
 </head>
 <body>
@@ -259,7 +293,8 @@ html[dir="rtl"] .player-row { border-left:none;border-right:4px solid var(--oran
 <!-- GAME SCREEN -->
 <div id="screen-game" class="screen">
   <div class="turn-banner" id="turn-banner"></div>
-  <div class="player-stations" id="player-stations"></div>
+  <div class="scoreboard-strip" id="scoreboard-strip"></div>
+  <div class="spotlight-row" id="spotlight-row"></div>
   <div id="pending-indicator" class="pending-indicator" style="display:none;"></div>
   <div class="kitchen-area" id="kitchen-area">
     <div class="card-area" id="card-area"></div>
@@ -267,7 +302,7 @@ html[dir="rtl"] .player-row { border-left:none;border-right:4px solid var(--oran
     <button class="btn btn-roll" id="btn-roll" onclick="doRoll()">DRAW CARDS! 🃏</button>
     <button class="btn btn-continue hidden" id="btn-continue" onclick="nextTurn()">NEXT CHEF ➡️</button>
   </div>
-  <div class="status-line" id="status-line"></div>
+  <div class="narrator" id="narrator"></div>
 </div>
 
 <!-- VICTORY SCREEN -->
@@ -333,7 +368,7 @@ const MINI_CARD_SVG = {
   sendback: '<div class="rule-mini-card" style="background:linear-gradient(135deg,#D97706,#F59E0B);border:2px solid #fbbf24;">'+CARD_SVG.sendback+'</div>',
 };
 
-let G = { players: [], currentIndex: 0, pendingMatch: null, phase: 'title', turnNumber: 0, stats: { totalPlated: 0, totalDumped: 0, totalCookoffs: 0, totalSentBack: 0, turns: 0 } };
+let G = { players: [], currentIndex: 0, pendingMatch: null, phase: 'title', turnNumber: 0, seenCards: {}, isFirstGame: true, stats: { totalPlated: 0, totalDumped: 0, totalCookoffs: 0, totalSentBack: 0, turns: 0 } };
 let selectedCount = 2;
 let isAnimating = false;
 let hasRolled = false;
@@ -402,6 +437,11 @@ const STRINGS = {
     cardSendback: 'Send It Back!',
     ruleSendback: '<strong>Send Back!</strong><br>Customer returns a dish!',
     statSentBack: 'Sent Back 😤',
+    tipTicket: 'This order stays at your station. Nothing changes!',
+    tipPlate: 'Served! This order leaves your kitchen forever!',
+    tipDump: 'Slide this order to the next chef\'s station!',
+    tipCookoff: 'Challenge! Compare cook-off cards — loser takes all!',
+    tipSendback: 'A customer returned a dish! It comes back to you!',
   },
   he: {
     title: '🍳 !יותר מדי טבחים 🔥',
@@ -465,6 +505,11 @@ const STRINGS = {
     cardSendback: '!החזרת מנה',
     ruleSendback: '<strong>!החזרת מנה</strong><br>!הלקוח החזיר את המנה',
     statSentBack: '😤 הוחזרו',
+    tipTicket: 'ההזמנה נשארת אצלך. שום דבר לא משתנה!',
+    tipPlate: 'הוגשה! ההזמנה יוצאת מהמטבח לתמיד!',
+    tipDump: 'העבר את ההזמנה לתחנה של הטבח הבא!',
+    tipCookoff: 'אתגר! השוו קלפי קרב — המפסיד לוקח הכל!',
+    tipSendback: 'לקוח החזיר מנה! היא חוזרת אליך!',
   }
 };
 function t(key){ return STRINGS[currentLang][key] || STRINGS.en[key] || key; }
@@ -601,7 +646,8 @@ function startGame() {
   }
   G.players=players;G.currentIndex=Math.floor(Math.random()*players.length);G.pendingMatch=null;G.turnNumber=0;
   G.stats={totalPlated:0,totalDumped:0,totalCookoffs:0,totalSentBack:0,turns:0};
-  $('status-line').innerHTML='';showScreen('game');beginTurn();
+  G.seenCards={};
+  $('narrator').innerHTML='';showScreen('game');beginTurn();
 }
 
 function nextPlayerIndex(from){return(from+1)%G.players.length;}
@@ -609,20 +655,40 @@ function getPlayer(i){return G.players[i];}
 function currentPlayer(){return G.players[G.currentIndex];}
 
 function renderStations() {
-  const c=$('player-stations');c.innerHTML='';
-  G.players.forEach((p,i)=>{
-    const div=document.createElement('div');div.className='station'+(i===G.currentIndex?' active':'');div.id='station-'+i;
-    const pc=Math.min(p.cubes,6);let pile='';
-    for(let j=0;j<pc;j++){pile+='<div class="pile-card" style="left:'+(j*3)+'px;transform:rotate('+((j-pc/2)*4)+'deg);z-index:'+j+';"></div>';}
-    div.innerHTML='<style>.station:nth-child('+(i+1)+')::before{background:'+p.color+';}</style><div class="station-name"><span style="color:'+p.color+'">'+(p.avatar||'🧑‍🍳')+'</span> '+p.name+'</div><div class="station-count" id="count-'+i+'">'+p.cubes+'<small> '+(p.cubes!==1?t('cards'):t('card'))+'</small></div><div class="station-pile">'+pile+'</div>';
-    if(p.cubes===0)div.classList.add('winner');c.appendChild(div);
+  const strip = $('scoreboard-strip');
+  const row = $('spotlight-row');
+  const nextIdx = nextPlayerIndex(G.currentIndex);
+
+  strip.innerHTML = '';
+  G.players.forEach((p, i) => {
+    const chip = document.createElement('div');
+    chip.className = 'sb-chip' + (i === G.currentIndex ? ' sb-active' : '') + (i === nextIdx ? ' sb-next' : '');
+    chip.id = 'station-' + i;
+    chip.innerHTML = '<span class="sb-avatar">' + (p.avatar || '🧑‍🍳') + '</span><span style="color:' + p.color + '">' + p.name + '</span><span class="sb-count" id="count-' + i + '">' + p.cubes + '</span>';
+    if (p.cubes === 0) chip.style.opacity = '.5';
+    strip.appendChild(chip);
   });
+
+  const active = currentPlayer();
+  const next = getPlayer(nextIdx);
+
+  function makeSpot(p, idx, type) {
+    const label = type === 'active' ? (currentLang === 'he' ? '🔪 תורך' : '🔪 YOUR TURN') : (currentLang === 'he' ? '⏭️ הבא' : '⏭️ NEXT UP');
+    const pc = Math.min(p.cubes, 8);
+    let pile = '';
+    for (let j = 0; j < pc; j++) pile += '<div class="pile-card" style="left:' + (j*3) + 'px;transform:rotate(' + ((j - pc/2) * 3) + 'deg);z-index:' + j + ';"></div>';
+    return '<div class="spot-station spot-' + type + '" style="--c:' + p.color + ';" id="spot-' + idx + '"><div class="spot-label label-' + type + '">' + label + '</div><div class="spot-name"><span style="color:' + p.color + ';font-size:1.6rem;">' + (p.avatar || '🧑‍🍳') + '</span> <span style="color:' + p.color + '">' + p.name + '</span>' + (p.isAI ? ' <span style="font-size:.7rem;color:var(--text-muted)">🤖</span>' : '') + '</div><div class="spot-count" id="spot-count-' + idx + '">' + p.cubes + '<small> ' + (p.cubes !== 1 ? t('cards') : t('card')) + '</small></div><div class="spot-pile">' + pile + '</div></div>';
+  }
+
+  row.innerHTML = makeSpot(active, G.currentIndex, 'active') + '<div class="spot-vs">⚔️</div>' + makeSpot(next, nextIdx, 'next');
 }
 
-function flashStation(index,color,text){
-  const s=$('station-'+index);if(!s)return;
-  const f=document.createElement('div');f.className='station-flash';s.appendChild(f);setTimeout(()=>f.remove(),500);
-  if(text){const ch=document.createElement('div');ch.className='station-count-change';ch.style.color=color||'white';ch.textContent=text;s.appendChild(ch);setTimeout(()=>ch.remove(),1600);}
+function flashStation(index, color, text) {
+  const s = document.getElementById('station-' + index);
+  if (!s) return;
+  s.style.transition = 'background .15s';
+  s.style.background = color ? ('rgba(' + (color === '#10B981' ? '16,185,129' : color === '#A855F7' ? '168,85,247' : color === '#EF4444' ? '239,68,68' : '247,201,72') + ',.25)') : '';
+  setTimeout(() => { s.style.background = ''; }, 500);
 }
 
 function renderPendingIndicator(){
@@ -631,7 +697,7 @@ function renderPendingIndicator(){
   else{el.style.display='none';}
 }
 
-function setStatus(msg,cls){const el=$('status-line');el.className='status-line'+(cls?' '+cls:'');el.innerHTML=msg;}
+function setStatus(msg,cls){const el=$('narrator');el.className='narrator'+(cls?' '+cls:'');el.innerHTML=msg;}
 
 function rollCards(count){const r=[];for(let i=0;i<count;i++){const v=Math.random()*6;if(v<3)r.push(FACE.TICKET);else if(v<4)r.push(FACE.DUMP);else if(v<5)r.push(FACE.PLATE);else r.push(FACE.COOKOFF);}return r;}
 function countFaces(results){const c=[0,0,0,0];results.forEach(f=>c[f]++);return{tickets:c[0],dumps:c[1],plates:c[2],cookoffs:c[3]};}
@@ -662,6 +728,12 @@ async function animateCards(results) {
     setTimeout(((c)=>()=>{c.classList.add('flipped');playSound('flip');})(cards[i]), i*80);
   }
   await wait(500 + cards.length * 80);
+
+  // Send It Back! event — right after flip, before sorting
+  const sbCount = rollSendBackCount();
+  if (sbCount > 0) {
+    await animateSendBack(sbCount, p);
+  }
 
   const sorted = [...results].map((f,i)=>({face:f,idx:i}));
   sorted.sort((a,b)=>{const o=[FACE.COOKOFF,FACE.DUMP,FACE.PLATE,FACE.TICKET];return o.indexOf(a.face)-o.indexOf(b.face);});
@@ -696,6 +768,7 @@ async function resolveCardsOneByOne(area, results, p, nextP, nextIdx) {
     G.stats.totalPlated += n;
     setStatus(ts('served',{n:n}));
     groups[FACE.PLATE].forEach(c=>c.classList.add('resolving'));
+    showCardTooltip(groups[FACE.PLATE][0], FACE.PLATE);
     await wait(400);
     playSound('plate');
     groups[FACE.PLATE].forEach(c=>{
@@ -714,9 +787,10 @@ async function resolveCardsOneByOne(area, results, p, nextP, nextIdx) {
     const n = groups[FACE.TICKET].length;
     setStatus(ts('stillCooking',{n:n}));
     groups[FACE.TICKET].forEach(c=>c.classList.add('resolving'));
+    showCardTooltip(groups[FACE.TICKET][0], FACE.TICKET);
     await wait(400);
     playSound('flip');
-    const curS2 = document.getElementById('station-'+G.currentIndex);
+    const curS2 = document.getElementById('spot-'+G.currentIndex) || document.getElementById('station-'+G.currentIndex);
     for (const card of groups[FACE.TICKET]) {
       card.classList.remove('resolving');
       if(curS2){
@@ -729,7 +803,7 @@ async function resolveCardsOneByOne(area, results, p, nextP, nextIdx) {
     }
     p.cubes += n;
     updateStationCount(G.currentIndex, p.cubes);
-    const curS3 = document.getElementById('station-'+G.currentIndex);
+    const curS3 = document.getElementById('spot-'+G.currentIndex) || document.getElementById('station-'+G.currentIndex);
     floatNumber(curS3, '+'+n, '#F7C948');
     punchCount(G.currentIndex, 1, '#F7C948');
     if(curS3) blinkStation(curS3,'blink-gold');
@@ -742,9 +816,10 @@ async function resolveCardsOneByOne(area, results, p, nextP, nextIdx) {
     G.stats.totalDumped += n;
     setStatus(ts('notMyProblem',{n:n,next:nextP.name}));
     groups[FACE.DUMP].forEach(c=>c.classList.add('resolving'));
+    showCardTooltip(groups[FACE.DUMP][0], FACE.DUMP);
     await wait(400);
     playSound('dump');
-    const nxS = document.getElementById('station-'+nextIdx);
+    const nxS = document.getElementById('spot-'+nextIdx) || document.getElementById('station-'+nextIdx);
     for (const card of groups[FACE.DUMP]) {
       card.classList.remove('resolving');
       if(nxS){
@@ -757,7 +832,7 @@ async function resolveCardsOneByOne(area, results, p, nextP, nextIdx) {
     }
     nextP.cubes += n;
     renderStations();
-    const nxS2 = document.getElementById('station-'+nextIdx);
+    const nxS2 = document.getElementById('spot-'+nextIdx) || document.getElementById('station-'+nextIdx);
     if(nxS2) blinkStation(nxS2,'blink-purple');
     floatNumber(nxS2, '+'+n, '#A855F7');
     punchCount(nextIdx, 1, '#A855F7');
@@ -769,6 +844,7 @@ async function resolveCardsOneByOne(area, results, p, nextP, nextIdx) {
     const n = groups[FACE.COOKOFF].length;
     setStatus(ts('cookoffStay',{n:n}),'status-cookoff');
     groups[FACE.COOKOFF].forEach(c=>c.classList.add('resolving'));
+    showCardTooltip(groups[FACE.COOKOFF][0], FACE.COOKOFF);
     await wait(300);
     playSound('cookoff');
     groups[FACE.COOKOFF].forEach(c=>{
@@ -809,13 +885,14 @@ async function animateSendBack(count, p) {
     el.style.animationDelay = (i * 0.15) + 's';
     el.innerHTML = '<div class="card-inner flipped"><div class="card-face card-back">' + CARD_SVG.back + '</div><div class="card-face card-front"><div class="card-svg">' + CARD_SVG.sendback + '</div><div class="card-label">' + f.label + '</div></div></div>';
     area.appendChild(el);
+    if (i === 0) showCardTooltip(el, FACE.SENDBACK);
     await wait(200);
     playSound('dump');
   }
   await wait(400);
 
   // Fly cards to player station
-  const curS = document.getElementById('station-' + G.currentIndex);
+  const curS = document.getElementById('spot-' + G.currentIndex) || document.getElementById('station-' + G.currentIndex);
   const sbCards = area.querySelectorAll('.card-sendback');
   for (const card of sbCards) {
     if (curS) {
@@ -868,9 +945,25 @@ function blinkStation(el, cls) {
   setTimeout(()=>el.classList.remove(cls),500);
 }
 
+function showCardTooltip(cardEl, faceType) {
+  if (!G.isFirstGame || G.seenCards[faceType]) return;
+  G.seenCards[faceType] = true;
+  const tipKeys = {0:'tipTicket', 1:'tipDump', 2:'tipPlate', 3:'tipCookoff', 4:'tipSendback'};
+  const key = tipKeys[faceType];
+  if (!key) return;
+  const tip = document.createElement('div');
+  tip.className = 'card-tooltip';
+  tip.textContent = t(key);
+  cardEl.style.position = 'relative';
+  cardEl.appendChild(tip);
+  setTimeout(() => tip.remove(), 3000);
+}
+
 function updateStationCount(idx, count) {
-  const el = document.getElementById('count-'+idx);
-  if(el) el.innerHTML = count+'<small> '+(count!==1?t('cards'):t('card'))+'</small>';
+  const chip = document.getElementById('count-' + idx);
+  if (chip) chip.textContent = count;
+  const spot = document.getElementById('spot-count-' + idx);
+  if (spot) spot.innerHTML = count + '<small> ' + (count !== 1 ? t('cards') : t('card')) + '</small>';
 }
 
 function showRollSummary(counts) {
@@ -910,7 +1003,7 @@ async function showCookoff(data) {
   const res=area.querySelector('#co-result');res.style.opacity='1';res.innerHTML=ts('cookoffResult',{winner:winner.name,loser:loser.name,n:data.total});
   playSound('win');await wait(1200);
   // Fly all cook-off cards to loser's station
-  const loserStation=document.getElementById('station-'+data.loser);
+  const loserStation=document.getElementById('spot-'+data.loser) || document.getElementById('station-'+data.loser);
   if(loserStation){
     const allCards=[...area.querySelectorAll('.co-card')];
     for(let i=0;i<allCards.length;i++){
@@ -961,14 +1054,6 @@ async function doRoll() {
     setStatus(p.name+': '+parts.join(' · '));
     renderStations();await wait(300);
 
-    // Send It Back! random event
-    const sbCount = rollSendBackCount();
-    if (sbCount > 0) {
-      await animateSendBack(sbCount, p);
-      parts.push(ts('summarySendBack',{n:sbCount}));
-      setStatus(p.name+': '+parts.join(' · '));
-    }
-
     let cr=null;
     if(G.pendingMatch){
       const pm=G.pendingMatch;const total=pm.count+counts.cookoffs;
@@ -986,11 +1071,11 @@ async function doRoll() {
       // Render first so stations are fresh, THEN add floats
       renderStations();
       if(cr.winner!==undefined){
-        const ws=document.getElementById('station-'+cr.winner);
+        const ws=document.getElementById('spot-'+cr.winner) || document.getElementById('station-'+cr.winner);
         if(ws) blinkStation(ws,'blink-green');
       }
       if(cr.loser!==undefined){
-        const ls=document.getElementById('station-'+cr.loser);
+        const ls=document.getElementById('spot-'+cr.loser) || document.getElementById('station-'+cr.loser);
         if(ls){blinkStation(ls,'blink-red');floatNumber(ls,'+'+cr.total,'#EF4444');punchCount(cr.loser,1,'#EF4444');}
       }
       await wait(1200);
@@ -1013,6 +1098,7 @@ function nextTurn(){if(isAnimating||!hasRolled)return;G.currentIndex=nextPlayerI
 
 function victory(winnerIndex) {
   G.phase='victory';
+  G.isFirstGame=false;
   const p=getPlayer(winnerIndex);
   playSound('win');
   $('winner-display').innerHTML='<span style="color:'+p.color+'">'+(p.avatar||'🧑‍🍳')+' '+p.name+'</span>';
