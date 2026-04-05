@@ -169,22 +169,7 @@ body::before {
 .btn-roll.hidden { display: none; }
 .btn-continue { background: linear-gradient(145deg, #38B2AC, #4FD1C5); color: #1a0a00; font-size: 1.1rem; padding: 12px 40px; border-radius: 50px; box-shadow: 0 4px 15px rgba(56,178,172,0.3); }
 .btn-continue.hidden { display: none; }
-.flip-status { text-align:center;min-height:28px;font-size:.9rem;font-weight:600;padding:4px 0;transition:all .3s; }
-.flip-status .ticket-pips { display:inline-flex;gap:4px;margin-left:8px; }
-.flip-status .pip { display:inline-block;width:12px;height:12px;border-radius:50%;border:2px solid rgba(255,255,255,.2);transition:all .3s; }
-.flip-status .pip.filled { background:var(--red);border-color:var(--red);box-shadow:0 0 8px rgba(229,62,62,.5); }
-.flip-actions { display:flex;gap:12px;justify-content:center;flex-wrap:wrap; }
-.flip-actions.hidden { display:none; }
-.btn-flip { background:linear-gradient(145deg,#F6E05E,#ED8936);color:#1a0a00;font-size:1.15rem;padding:12px 32px;border-radius:50px;box-shadow:0 4px 15px rgba(246,224,94,.3);animation:rollPulse 2s ease-in-out infinite; }
-.btn-flip:hover { box-shadow:0 8px 30px rgba(247,201,72,.6);animation:none; }
-.btn-stop { background:linear-gradient(145deg,#48BB78,#38A169);color:white;font-size:1.15rem;padding:12px 32px;border-radius:50px;box-shadow:0 4px 15px rgba(72,187,120,.3); }
-.btn-stop:hover { box-shadow:0 8px 25px rgba(72,187,120,.5); }
-.card-container.face-down-clickable { cursor:pointer;transition:transform .2s;-webkit-tap-highlight-color:transparent;touch-action:manipulation; }
-.card-container.face-down-clickable:hover { transform:translateY(-6px); }
-.bust-overlay { position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(229,62,62,.15);border-radius:20px;z-index:30;animation:bustFlash .6s ease-out; }
-.bust-text { font-size:clamp(1.5rem,5vw,2.5rem);font-weight:800;color:var(--red);text-shadow:0 0 30px rgba(229,62,62,.6);animation:bustSlam .5s ease-out; }
-@keyframes bustFlash { 0%{background:rgba(229,62,62,.4)} 100%{background:rgba(229,62,62,.15)} }
-@keyframes bustSlam { 0%{transform:scale(2);opacity:0} 60%{transform:scale(.9)} 100%{transform:scale(1);opacity:1} }
+
 
 /* Cook-Off Overlay */
 /* Cook-Off inline (inside kitchen area) */
@@ -296,9 +281,7 @@ body::before {
   /* Buttons */
   .btn { padding: 10px 20px; font-size: 1rem; width: 100%; box-sizing: border-box; }
   .btn-roll { padding: 12px 32px; font-size: 1.2rem; width: auto; }
-  .btn-flip { padding:10px 24px;font-size:1rem; }
-  .btn-stop { padding:10px 24px;font-size:1rem; }
-  .flip-actions { gap:8px; }
+
 
   /* Turn banner */
   .turn-banner { padding: 8px 14px; font-size: clamp(1rem, 3.5vw, 1.4rem); border-radius: 12px; }
@@ -506,12 +489,8 @@ html[dir="rtl"] .player-row { border-left:none;border-right:4px solid var(--oran
   <div id="cookoff-zone"></div>
   <div class="kitchen-area" id="kitchen-area">
     <div class="card-area" id="card-area"></div>
-    <div class="flip-status" id="flip-status"></div>
-    <button class="btn btn-roll hidden" id="btn-roll" onclick="startFlipPhase()">DRAW CARDS! 🃏</button>
-    <div class="flip-actions hidden" id="flip-actions">
-      <button class="btn btn-flip" id="btn-flip" onclick="flipNext()">FLIP ANOTHER 🎲</button>
-      <button class="btn btn-stop" id="btn-stop" onclick="stopFlipping()">STOP ✋</button>
-    </div>
+
+    <button class="btn btn-roll" id="btn-roll" onclick="doRoll()">DRAW CARDS! 🃏</button>
     <button class="btn btn-continue hidden" id="btn-continue" onclick="nextTurn()">NEXT CHEF ➡️</button>
   </div>
   <div class="narrator" id="narrator"></div>
@@ -589,7 +568,7 @@ const MINI_CARD_SVG = {
   sendback: '<div class="rule-mini-card" style="background:linear-gradient(135deg,#D97706,#F59E0B);border:2px solid #fbbf24;">'+CARD_SVG.sendback+'</div>',
 };
 
-let G = { players: [], currentIndex: 0, pendingMatch: null, phase: 'title', turnNumber: 0, seenCards: {}, isFirstGame: true, luck: { results: [], flipped: [], ticketCount: 0, busted: false }, stats: { totalPlated: 0, totalDumped: 0, totalCookoffs: 0, totalSentBack: 0, turns: 0 } };
+let G = { players: [], currentIndex: 0, pendingMatch: null, phase: 'title', turnNumber: 0, seenCards: {}, isFirstGame: true, stats: { totalPlated: 0, totalDumped: 0, totalCookoffs: 0, totalSentBack: 0, turns: 0 } };
 let selectedCount = 2;
 let isAnimating = false;
 let hasRolled = false;
@@ -655,13 +634,7 @@ const STRINGS = {
     cardSendback: 'Yuck!',
     ruleSendback: '<strong>Send Back!</strong><br>Customer returns a dish!',
     statSentBack: 'Sent Back 😤',
-    tapToFlip: '👆 Tap a card to reveal!',
-    tapReveal: '👆 Tap a card to reveal!',
-    busted: '💥 3 Tickets! Everything back + penalty!',
-    cookoffForced: '🔥 COOK-OFF! Forced stop!',
-    bustTitle: '💥 BUSTED!',
-    flipAnother: 'FLIP ANOTHER 🎲',
-    stopBtn: 'STOP ✋',
+
     tipTicket: 'This order stays at your station. Keep cooking next turn!',
     tipPlate: 'Served! This order goes to the customer!',
     tipDump: 'Slide this order to the next chef\'s station!',
@@ -749,13 +722,7 @@ const STRINGS = {
     cardSendback: '!איכס',
     ruleSendback: '<strong>מנה חזרה!</strong><br>הלקוח החזיר את המנה, בשל אותה שוב',
     statSentBack: '😤 הוחזרו',
-    tapToFlip: '!👆 הקש על קלף לגלות',
-    tapReveal: '!👆 הקש על קלף לגלות',
-    busted: '!💥 3 כרטיסים! הכל חוזר + קנס',
-    cookoffForced: '!🔥 קוק-אוף! עוצרים',
-    bustTitle: '!💥 שרפת הכל',
-    flipAnother: '🎲 גלה עוד',
-    stopBtn: '✋ עצור',
+
     tipTicket: 'ההזמנה נשארת אצלך. המשך לבשל בתור הבא!',
     tipPlate: 'הוגשה! ההזמנה יוצאת ללקוח!',
     tipDump: 'העבר את ההזמנה לטבח הבא!',
@@ -824,8 +791,7 @@ function refreshUI() {
   if(G.phase==='setup') initSetup();
   $('btn-roll').textContent = t('drawBtn');
   $('btn-continue').textContent = t('nextBtn');
-  $('btn-flip').textContent = t('flipAnother');
-  $('btn-stop').textContent = t('stopBtn');
+
   const vTitle = document.querySelector('.victory-title');
   if(vTitle) vTitle.textContent = t('victoryTitle');
   const vSub = document.querySelector('.victory-subtitle');
@@ -985,7 +951,7 @@ function startGame() {
   }
   G.players=players;G.currentIndex=Math.floor(Math.random()*players.length);G.pendingMatch=null;G.turnNumber=0;
   G.stats={totalPlated:0,totalDumped:0,totalCookoffs:0,totalSentBack:0,turns:0};
-  G.seenCards={};G.luck={ results: [], flipped: [], ticketCount: 0, busted: false };
+  G.seenCards={};
   $('narrator').innerHTML='';$('cookoff-zone').innerHTML='';showScreen('game');beginTurn();
 }
 
@@ -1353,367 +1319,71 @@ async function showCookoff(data) {
 }
 
 function beginTurn() {
-  isAnimating = false; hasRolled = false;
-  const p = currentPlayer();
-  if (p.cubes <= 0) { p.cubes = 0; if (G.pendingMatch) G.pendingMatch = null; victory(G.currentIndex); return; }
-  G.turnNumber++; G.stats.turns++; renderStations();
-  $('card-area').innerHTML = '';
-  $('flip-status').innerHTML = '';
-  $('turn-banner').innerHTML = (p.avatar || '🧑‍🍳') + ' <span style="color:' + p.color + '">' + ts('turnOf', {name: p.name}) + '</span>';
-  $('turn-banner').style.borderColor = p.color;
-  $('btn-roll').classList.remove('hidden');
-  $('btn-continue').classList.add('hidden');
-  $('flip-actions').classList.add('hidden');
-
-  // Reset push-your-luck state
-  G.luck = { results: [], flipped: [], ticketCount: 0, busted: false };
-
-  if (p.isAI) {
-    $('btn-roll').classList.add('hidden');
-    setStatus(ts('aiThinking', {name: p.name, v: gv(p, 'סוקר', 'סוקרת')}));
-    setTimeout(() => startFlipPhase(), 800 + Math.random() * 600);
-  }
+  isAnimating=false;hasRolled=false;const p=currentPlayer();
+  if(p.cubes<=0){p.cubes=0;if(G.pendingMatch)G.pendingMatch=null;victory(G.currentIndex);return;}
+  G.turnNumber++;G.stats.turns++;renderStations();
+  $('card-area').innerHTML='';
+  $('turn-banner').innerHTML=(p.avatar||'🧑‍🍳')+' <span style="color:'+p.color+'">'+ts('turnOf',{name:p.name})+"</span>";
+  $('turn-banner').style.borderColor=p.color;
+  $('btn-roll').classList.remove('hidden');$('btn-continue').classList.add('hidden');
+  if(p.isAI){$('btn-roll').classList.add('hidden');setStatus(ts('aiThinking',{name:p.name,v:gv(p,'סוקר','סוקרת')}));setTimeout(()=>doRoll(),800+Math.random()*600);}
 }
 
-async function startFlipPhase() {
-  if (isAnimating) return;
-  isAnimating = true; hasRolled = true;
-  $('btn-roll').classList.add('hidden');
-  $('flip-actions').classList.add('hidden');
+async function doRoll() {
+  if(isAnimating)return;
+  isAnimating=true;hasRolled=true;$('btn-roll').classList.add('hidden');$('btn-continue').classList.add('hidden');
+  const p=currentPlayer();const nextIdx=nextPlayerIndex(G.currentIndex);const nextP=getPlayer(nextIdx);
+  try {
+    const results=rollCards(p.cubes);const counts=countFaces(results);
+    setStatus(ts('draws',{name:p.name,n:p.cubes,s:p.cubes>1?'s':'',v:gv(p,'שולף','שולפת')}));
+    const area=await animateCards(results);await wait(300);
 
-  const p = currentPlayer();
-  const count = p.cubes;
-  const results = rollCards(count);
+    // Resolve each card one by one with animations
+    await resolveCardsOneByOne(area, results, p, nextP, nextIdx);
 
-  // Deduct all cards
-  p.cubes = 0;
-  updateStationCount(G.currentIndex, 0);
+    // Summary status
+    const parts=[];
+    if(counts.plates>0)parts.push(ts('summaryPlates',{n:counts.plates}));
+    if(counts.dumps>0)parts.push(ts('summaryDumps',{n:counts.dumps,next:nextP.name}));
+    if(counts.tickets>0)parts.push(ts('summaryTickets',{n:counts.tickets}));
+    if(counts.cookoffs>0)parts.push(ts('summaryCookoffs',{n:counts.cookoffs}));
+    setStatus(p.name+': '+parts.join(' · '));
+    renderStations();await wait(300);
 
-  G.luck = { results, flipped: [], ticketCount: 0, busted: false };
+    let cr=null;
+    if(G.pendingMatch){
+      const pm=G.pendingMatch;const total=pm.count+counts.cookoffs;
+      if(counts.cookoffs>=pm.count){const ch=getPlayer(pm.challengerIndex);if(ch.cubes>0)ch.cubes+=total;cr={type:'defender_wins',winner:G.currentIndex,loser:pm.challengerIndex,total,defenderCount:counts.cookoffs,challengerCount:pm.count};}
+      else{p.cubes+=total;cr={type:'defender_loses',winner:pm.challengerIndex,loser:G.currentIndex,total,defenderCount:counts.cookoffs,challengerCount:pm.count};}
+      G.pendingMatch=null;
+      G.stats.totalCookoffs++;
+    } else if(counts.cookoffs>0){G.pendingMatch={count:counts.cookoffs,challengerIndex:G.currentIndex};cr={type:'new_challenge',count:counts.cookoffs,challenger:G.currentIndex};}
 
-  // Deal face-down
-  const area = $('card-area'); area.innerHTML = '';
-  for (let i = 0; i < count; i++) {
-    const el = document.createElement('div');
-    el.className = 'card-container face-down-clickable';
-    el.dataset.index = i;
-    el.style.opacity = '0';
-    const f = FACE_DATA[results[i]];
-    el.innerHTML = '<div class="card-inner"><div class="card-face card-back">' + CARD_SVG.back + '</div><div class="card-face card-front"><div class="card-svg">' + CARD_SVG[f.cls] + '</div><div class="card-label">' + f.label + '</div></div></div>';
-    area.appendChild(el);
-    setTimeout(((e) => () => { e.style.transition = 'opacity 0.3s'; e.style.opacity = '1'; })(el), i * 80);
-  }
-  playSound('roll');
-  await wait(300 + count * 80);
-
-  setStatus(t('tapReveal'));
-  updateFlipStatus();
-
-  if (p.isAI) {
-    await aiPushYourLuck();
-  } else {
-    enableCardClick();
-    isAnimating = false;
-  }
-}
-
-function enableCardClick() {
-  const area = $('card-area');
-  area.querySelectorAll('.card-container.face-down-clickable').forEach(el => {
-    el.onclick = function(e) { e.preventDefault(); flipCard(this); };
-    el.ontouchend = function(e) { e.preventDefault(); flipCard(this); };
-  });
-}
-
-function disableCardClick() {
-  const area = $('card-area');
-  area.querySelectorAll('.card-container').forEach(el => { el.onclick = null; el.ontouchend = null; });
-}
-
-async function flipCard(el) {
-  if (isAnimating || !el.classList.contains('face-down-clickable')) return;
-  isAnimating = true;
-  disableCardClick();
-
-  const idx = parseInt(el.dataset.index);
-  const face = G.luck.results[idx];
-  const f = FACE_DATA[face];
-
-  // Flip animation
-  el.classList.remove('face-down-clickable');
-  el.classList.add('card-' + f.cls);
-  el.querySelector('.card-inner').classList.add('flipped');
-  playSound(f.cls);
-
-  G.luck.flipped.push(idx);
-  if (face === FACE.TICKET) G.luck.ticketCount++;
-
-  await wait(500);
-
-  // Check for bust (3 tickets)
-  if (G.luck.ticketCount >= 3) {
-    await handleBust();
-    return;
-  }
-
-  // Cookoff forces stop
-  if (face === FACE.COOKOFF) {
-    setStatus(t('cookoffForced'), 'status-cookoff');
-    await wait(600);
-    await resolveFlipped();
-    return;
-  }
-
-  // Update status
-  const typeNames = {
-    ticket: currentLang === 'he' ? '🎫 עוד מבשלים...' : '🎫 Still Cooking...',
-    plate: currentLang === 'he' ? '✅ מוכן להגשה!' : '✅ Order Ready!',
-    dump: currentLang === 'he' ? '💜 לא שלי!' : '💜 Not My Problem!',
-    cookoff: currentLang === 'he' ? '🔥 קוק-אוף!' : '🔥 COOK-OFF!'
-  };
-  setStatus(typeNames[f.cls] || f.label, 'status-' + f.cls);
-  updateFlipStatus();
-
-  // Check if all cards flipped
-  const remaining = $('card-area').querySelectorAll('.face-down-clickable').length;
-  if (remaining === 0) {
-    await wait(400);
-    await resolveFlipped();
-    return;
-  }
-
-  // Show stop/continue buttons
-  if (!currentPlayer().isAI) {
-    $('flip-actions').classList.remove('hidden');
-    isAnimating = false;
-    enableCardClick();
-  }
-}
-
-function updateFlipStatus() {
-  const el = $('flip-status');
-  const tc = G.luck.ticketCount;
-  let pips = '<span class="ticket-pips">';
-  for (let i = 0; i < 3; i++) {
-    pips += '<span class="pip' + (i < tc ? ' filled' : '') + '"></span>';
-  }
-  pips += '</span>';
-
-  const flippedCount = G.luck.flipped.length;
-  const totalCount = G.luck.results.length;
-  const label = currentLang === 'he'
-    ? 'נחשפו ' + flippedCount + '/' + totalCount + ' · כרטיסים'
-    : 'Revealed ' + flippedCount + '/' + totalCount + ' · Tickets';
-  el.innerHTML = label + ' ' + pips;
-}
-
-async function handleBust() {
-  G.luck.busted = true;
-  const p = currentPlayer();
-
-  disableCardClick();
-  $('flip-actions').classList.add('hidden');
-
-  // Bust animation
-  playSound('cookoff');
-  const kitchen = $('kitchen-area');
-  const overlay = document.createElement('div');
-  overlay.className = 'bust-overlay';
-  overlay.innerHTML = '<div class="bust-text">' + t('bustTitle') + '</div>';
-  kitchen.appendChild(overlay);
-
-  setStatus(t('busted'), 'status-cookoff');
-
-  await wait(1500);
-
-  // ALL cards (flipped + unflipped) return to hand + 1 penalty
-  const totalCards = G.luck.results.length;
-  p.cubes = totalCards + 1;
-  updateStationCount(G.currentIndex, p.cubes);
-
-  // Animate all cards flying back
-  const area = $('card-area');
-  area.querySelectorAll('.card-container').forEach(c => {
-    c.style.transition = 'all 0.5s';
-    c.style.opacity = '0';
-    c.style.transform = 'scale(0.3)';
-  });
-
-  await wait(600);
-  overlay.remove();
-  area.innerHTML = '';
-  $('flip-status').innerHTML = '';
-
-  // Float the penalty
-  const curS = document.getElementById('spot-' + G.currentIndex) || document.getElementById('station-' + G.currentIndex);
-  if (curS) { blinkStation(curS, 'blink-red'); floatNumber(curS, '+1 ⚠️', '#EF4444'); }
-  renderStations();
-
-  await wait(800);
-
-  // SendBack can still happen after bust
-  const sbCount = rollSendBackCount();
-  if (sbCount > 0) await animateSendBack(sbCount, p);
-
-  renderStations();
-  $('btn-continue').classList.remove('hidden');
-  isAnimating = false;
-  if (p.isAI && G.phase === 'game') setTimeout(() => nextTurn(), 1000 + Math.random() * 500);
-}
-
-async function stopFlipping() {
-  if (isAnimating) return;
-  isAnimating = true;
-  $('flip-actions').classList.add('hidden');
-  disableCardClick();
-  await resolveFlipped();
-}
-
-async function flipNext() {
-  $('flip-actions').classList.add('hidden');
-  setStatus(t('tapReveal'));
-}
-
-async function resolveFlipped() {
-  isAnimating = true;
-  $('flip-actions').classList.add('hidden');
-  disableCardClick();
-
-  const p = currentPlayer();
-  const nextIdx = nextPlayerIndex(G.currentIndex);
-  const nextP = getPlayer(nextIdx);
-  const area = $('card-area');
-
-  // Unflipped cards return to hand silently
-  const unflippedCount = G.luck.results.length - G.luck.flipped.length;
-  area.querySelectorAll('.face-down-clickable').forEach(c => {
-    c.style.transition = 'all 0.4s';
-    c.style.opacity = '0';
-    c.style.transform = 'scale(0.5)';
-  });
-  if (unflippedCount > 0) {
-    p.cubes += unflippedCount;
-    updateStationCount(G.currentIndex, p.cubes);
-    await wait(500);
-  }
-
-  // Remove unflipped from DOM
-  area.querySelectorAll('.face-down-clickable').forEach(c => c.remove());
-
-  // Build flipped results
-  const flippedResults = G.luck.flipped.map(i => G.luck.results[i]);
-  const counts = countFaces(flippedResults);
-
-  // Sort flipped cards for resolution
-  const sorted = flippedResults.map((f, i) => ({face: f, idx: i}));
-  sorted.sort((a, b) => {
-    const o = [FACE.COOKOFF, FACE.DUMP, FACE.PLATE, FACE.TICKET];
-    return o.indexOf(a.face) - o.indexOf(b.face);
-  });
-  area.innerHTML = '';
-  sorted.forEach((item, i) => {
-    const f = FACE_DATA[item.face];
-    const el = document.createElement('div');
-    el.className = 'card-container card-' + f.cls;
-    el.dataset.face = item.face;
-    el.innerHTML = '<div class="card-inner flipped"><div class="card-face card-back">' + CARD_SVG.back + '</div><div class="card-face card-front"><div class="card-svg">' + CARD_SVG[f.cls] + '</div><div class="card-label">' + f.label + '</div></div></div>';
-    el.style.animation = 'cardSettle 0.3s ease-out ' + (i * 0.04) + 's both';
-    area.appendChild(el);
-  });
-  await wait(400);
-
-  // SendBack event
-  const sbCount = rollSendBackCount();
-  if (sbCount > 0) await animateSendBack(sbCount, p);
-
-  // Resolve flipped cards
-  await resolveCardsOneByOne(area, sorted.map(s => s.face), p, nextP, nextIdx);
-
-  // Summary
-  const parts = [];
-  if (counts.plates > 0) parts.push(ts('summaryPlates', {n: counts.plates}));
-  if (counts.dumps > 0) parts.push(ts('summaryDumps', {n: counts.dumps, next: nextP.name}));
-  if (counts.tickets > 0) parts.push(ts('summaryTickets', {n: counts.tickets}));
-  if (counts.cookoffs > 0) parts.push(ts('summaryCookoffs', {n: counts.cookoffs}));
-  if (parts.length > 0) setStatus(p.name + ': ' + parts.join(' · '));
-  renderStations(); await wait(300);
-  $('flip-status').innerHTML = '';
-
-  // Cookoff logic
-  let cr = null;
-  if (G.pendingMatch) {
-    const pm = G.pendingMatch; const total = pm.count + counts.cookoffs;
-    if (counts.cookoffs >= pm.count) {
-      const ch = getPlayer(pm.challengerIndex);
-      if (ch.cubes > 0) ch.cubes += total;
-      cr = {type: 'defender_wins', winner: G.currentIndex, loser: pm.challengerIndex, total, defenderCount: counts.cookoffs, challengerCount: pm.count};
-    } else {
-      p.cubes += total;
-      cr = {type: 'defender_loses', winner: pm.challengerIndex, loser: G.currentIndex, total, defenderCount: counts.cookoffs, challengerCount: pm.count};
+    if(cr){
+      await showCookoff(cr);
+      // Render first so stations are fresh, THEN add floats
+      renderStations();
+      if(cr.winner!==undefined){
+        const ws=document.getElementById('spot-'+cr.winner) || document.getElementById('station-'+cr.winner);
+        if(ws) blinkStation(ws,'blink-green');
+      }
+      if(cr.loser!==undefined){
+        const ls=document.getElementById('spot-'+cr.loser) || document.getElementById('station-'+cr.loser);
+        if(ls){blinkStation(ls,'blink-red');floatNumber(ls,'+'+cr.total,'#EF4444');punchCount(cr.loser,1,'#EF4444');}
+      }
+      await wait(1200);
     }
-    G.pendingMatch = null;
-    G.stats.totalCookoffs++;
-  } else if (counts.cookoffs > 0) {
-    G.pendingMatch = {count: counts.cookoffs, challengerIndex: G.currentIndex};
-    cr = {type: 'new_challenge', count: counts.cookoffs, challenger: G.currentIndex};
-  }
-
-  if (cr) {
-    await showCookoff(cr);
     renderStations();
-    if (cr.winner !== undefined) {
-      const ws = document.getElementById('spot-' + cr.winner) || document.getElementById('station-' + cr.winner);
-      if (ws) blinkStation(ws, 'blink-green');
+    if(p.cubes<=0&&!G.pendingMatch){p.cubes=0;await wait(500);victory(G.currentIndex);return;}
+  } catch(err) {
+    console.error('doRoll error:',err);
+    setStatus(t('error'));
+  } finally {
+    if(G.phase!=='victory'){
+      $('btn-continue').classList.remove('hidden');
+      isAnimating=false;
+      if(currentPlayer().isAI&&G.phase==='game')setTimeout(()=>nextTurn(),1000+Math.random()*500);
     }
-    if (cr.loser !== undefined) {
-      const ls = document.getElementById('spot-' + cr.loser) || document.getElementById('station-' + cr.loser);
-      if (ls) { blinkStation(ls, 'blink-red'); floatNumber(ls, '+' + cr.total, '#EF4444'); punchCount(cr.loser, 1, '#EF4444'); }
-    }
-    await wait(1200);
-  }
-
-  renderStations();
-  if (p.cubes <= 0 && !G.pendingMatch) { p.cubes = 0; await wait(500); victory(G.currentIndex); return; }
-
-  $('btn-continue').classList.remove('hidden');
-  isAnimating = false;
-  if (currentPlayer().isAI && G.phase === 'game') setTimeout(() => nextTurn(), 1000 + Math.random() * 500);
-}
-
-async function aiPushYourLuck() {
-  const area = $('card-area');
-  const p = currentPlayer();
-  const results = G.luck.results;
-
-  while (true) {
-    const faceDown = area.querySelectorAll('.face-down-clickable');
-    if (faceDown.length === 0) break;
-    if (G.luck.busted) break;
-
-    // Risk assessment
-    const goodCards = G.luck.flipped.filter(i => results[i] === FACE.PLATE || results[i] === FACE.DUMP).length;
-    const tickets = G.luck.ticketCount;
-
-    // Stop conditions
-    if (tickets >= 2 && goodCards >= 1) break;
-    if (tickets >= 2 && Math.random() < 0.6) break;
-    if (goodCards >= 3) break;
-
-    await wait(600 + Math.random() * 500);
-
-    // Pick a random face-down card
-    const target = faceDown[Math.floor(Math.random() * faceDown.length)];
-    await flipCard(target);
-
-    if (G.luck.busted) return;
-
-    await wait(300);
-  }
-
-  // If not busted and still has unresolved cards, stop and resolve
-  if (!G.luck.busted) {
-    await wait(500);
-    await resolveFlipped();
   }
 }
 
