@@ -295,7 +295,8 @@ html[dir="rtl"] .player-row { border-left:none;border-right:4px solid var(--oran
   </div>
   <div class="title-rules" id="title-rules"></div>
   <div class="title-goal">🏁 First chef to clear all orders wins!</div>
-  <button class="btn btn-primary" onclick="startTutorial()">START COOKING! 🔥</button>
+  <button class="btn btn-primary" onclick="showScreen('setup')">START COOKING! 🔥</button>
+  <button class="btn btn-tut btn-tut-skip" onclick="startTutorial()" style="margin-top:4px;" id="btn-tutorial">📖 How to Play</button>
 </div>
 
 <!-- TUTORIAL SCREEN -->
@@ -478,6 +479,7 @@ const STRINGS = {
     tutNext: 'Next ➡️',
     tutSkip: 'Skip Tutorial',
     tutDone: 'Let\'s Cook! 🔥',
+    tutHowTo: '📖 How to Play',
     tutTicketName: '📋 Ticket Order',
     tutTicketDesc: 'This order stays at your station. Nothing happens — you\'ll deal with it later.',
     tutTicketExample: 'Example: You draw 3 Tickets → they all stay with you. No movement.',
@@ -564,6 +566,7 @@ const STRINGS = {
     tutNext: '➡️ הבא',
     tutSkip: 'דלג על ההדרכה',
     tutDone: '!יאללה לבשל 🔥',
+    tutHowTo: '📖 איך משחקים',
     tutTicketName: '📋 הזמנה רגילה',
     tutTicketDesc: 'ההזמנה נשארת אצלך בתחנה. שום דבר לא קורה — תטפל בזה אחר כך.',
     tutTicketExample: 'דוגמה: שלפת 3 הזמנות רגילות → כולן נשארות אצלך.',
@@ -610,6 +613,8 @@ function refreshUI() {
   if(titleGoal) titleGoal.textContent = t('goal');
   const startBtn = document.querySelector('#screen-title .btn-primary');
   if(startBtn) startBtn.textContent = t('startBtn');
+  const tutBtn = $('btn-tutorial');
+  if(tutBtn) tutBtn.textContent = t('tutHowTo');
   initTitleScreen();
   const setupTitle = document.querySelector('.setup-title');
   if(setupTitle) setupTitle.textContent = t('setupTitle');
@@ -693,7 +698,6 @@ const TUT_STEPS = [
 ];
 
 function startTutorial() {
-  if (!G.isFirstGame) { showScreen('setup'); return; }
   tutStep = 0;
   showScreen('tutorial');
   renderTutStep();
