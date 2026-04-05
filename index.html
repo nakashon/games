@@ -989,7 +989,7 @@ async function showCookoff(data) {
   const area=$('card-area');playSound('clash');
   if(data.type==='new_challenge'){
     const ch=getPlayer(data.challenger);const np=getPlayer(nextPlayerIndex(data.challenger));
-    area.innerHTML='<div class="cookoff-box"><div class="cookoff-title">'+t('challengeTitle')+'</div><div class="cookoff-versus"><div class="cookoff-side"><div class="side-name" style="color:'+ch.color+'">'+ch.name+'</div><div class="side-cards">'+makeCookoffCards(data.count,false)+'</div></div><div class="cookoff-vs">➡</div><div class="cookoff-side"><div class="side-name" style="color:'+np.color+'">'+np.name+'</div><div class="side-cards">'+makeCookoffCards(data.count,true)+'</div></div></div><div class="cookoff-result">'+ts('throwsDown',{name:ch.name,n:data.count,s:data.count>1?'s':''})+'</div></div>';
+    area.innerHTML='<div class="cookoff-box"><div class="cookoff-title">'+t('challengeTitle')+'</div><div class="cookoff-versus"><div class="cookoff-side"><div class="side-name" style="color:'+ch.color+'">'+ch.name+'</div><div class="side-cards">'+makeCookoffCards(data.count,false)+'</div></div><div class="cookoff-vs">'+(currentLang==='he'?'⬅':'➡')+'</div><div class="cookoff-side"><div class="side-name" style="color:'+np.color+'">'+np.name+'</div><div class="side-cards">'+makeCookoffCards(data.count,true)+'</div></div></div><div class="cookoff-result">'+ts('throwsDown',{name:ch.name,n:data.count,s:data.count>1?'s':''})+'</div></div>';
     await wait(2500);return;
   }
   const winner=getPlayer(data.winner);const loser=getPlayer(data.loser);const leftP=data.type==='defender_wins'?loser:winner;
