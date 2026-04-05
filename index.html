@@ -391,7 +391,7 @@ const FACE_DATA = [
   { name: 'Dump',     cls: 'dump',    label: 'Not My Problem!', color: '#A855F7' },
   { name: 'Plate',    cls: 'plate',   label: 'Order Ready!', color: '#10B981' },
   { name: 'Cook-Off', cls: 'cookoff', label: 'COOK-OFF!', color: '#EF4444' },
-  { name: 'Send Back', cls: 'sendback', label: 'Send It Back!', color: '#F59E0B' },
+  { name: 'Send Back', cls: 'sendback', label: 'Yuck!', color: '#F59E0B' },
 ];
 const PLAYER_COLORS = ['#FF6B35','#4ECDC4','#E63946','#7209B7','#06D6A0','#F472B6'];
 const CHEF_AVATARS = ['👨‍🍳','👩‍🍳','🧑‍🍳','🤠','🦊','🐻','🐧','🐱','🦁','🐸','👾','🤖'];
@@ -508,7 +508,7 @@ const STRINGS = {
     card: 'order',
     sendBack: '😤 Send It Back! ×{n} — cook it again!',
     summarySendBack: '😤 {n} sent back',
-    cardSendback: 'Send It Back!',
+    cardSendback: 'Yuck!',
     ruleSendback: '<strong>Send Back!</strong><br>Customer returns a dish!',
     statSentBack: 'Sent Back 😤',
     tipTicket: 'This order stays at your station. Keep cooking next turn!',
@@ -595,7 +595,7 @@ const STRINGS = {
     card: 'הזמנה',
     sendBack: '😤 חזרה מנה! ×{n} — בשל את המנה מחדש',
     summarySendBack: '😤 {n} חזרו',
-    cardSendback: 'מנה חזרה!',
+    cardSendback: '!איכס',
     ruleSendback: '<strong>מנה חזרה!</strong><br>הלקוח החזיר את המנה, בשל אותה שוב',
     statSentBack: '😤 הוחזרו',
     tipTicket: 'ההזמנה נשארת אצלך. המשך לבשל בתור הבא!',
@@ -696,21 +696,35 @@ function playSound(type) {
   } catch(e) {}
 }
 
-/* Background Music System */
-let bgmOscillators=[];let bgmTimeout=null;let bgmPlaying=null;let musicMuted=false;let musicVol=0.12;
-const BGM_NOTES=[[261.63,1],[329.63,1],[392,1],[493.88,1],[392,1],[329.63,1],[261.63,1],[0,1]];
-const COOKOFF_NOTES=[[185,0.5],[261.63,0.5],[196,0.5],[293.66,0.5],[185,0.5],[261.63,0.5],[196,0.5],[293.66,0.5]];
-const VICTORY_NOTES=[[261.63,0.75],[329.63,0.75],[392,0.75],[523.25,1.5]];
+/* Background Music System - 8-bit chiptune */
+let bgmOscillators=[];let bgmTimeout=null;let bgmPlaying=null;let musicMuted=false;let musicVol=0.08;
+// Mario-style 8-bit melody (C major bouncy kitchen theme)
+const BGM_NOTES=[
+  [523,0.25],[523,0.25],[0,0.25],[523,0.25],[0,0.25],[415,0.25],[523,0.25],[0,0.25],
+  [659,0.5],[0,0.5],[330,0.5],[0,0.25],
+  [392,0.25],[0,0.5],[262,0.25],[0,0.25],
+  [330,0.25],[0,0.25],[349,0.25],[330,0.25],[0,0.25],
+  [392,0.5],[523,0.5],[587,0.25],[494,0.25],[0,0.25],
+  [523,0.25],[0,0.25],[415,0.25],[440,0.25],[349,0.25],[0,0.25],
+  [392,0.25],[330,0.25],[262,0.25],[294,0.25],[247,0.5],[0,0.5]
+];
+const COOKOFF_NOTES=[
+  [165,0.25],[196,0.25],[220,0.25],[262,0.25],[220,0.25],[196,0.25],[165,0.25],[196,0.25],
+  [175,0.25],[208,0.25],[247,0.25],[294,0.25],[247,0.25],[208,0.25],[175,0.25],[208,0.25]
+];
+const VICTORY_NOTES=[
+  [523,0.2],[523,0.2],[523,0.2],[0,0.1],[523,0.3],[415,0.2],[523,0.2],[0,0.1],[659,0.4],[0,0.2],[784,0.6]
+];
 function stopBGM(){clearTimeout(bgmTimeout);bgmOscillators.forEach(o=>{try{o.stop();o.disconnect()}catch(e){}});bgmOscillators=[];bgmPlaying=null;}
 function playMelodyLoop(notes,loop,type,tempo,idx){
-  if(!audioCtx||musicMuted)return;if(idx>=notes.length){if(loop){bgmTimeout=setTimeout(()=>playMelodyLoop(notes,true,type,tempo,0),100)}return}
+  if(!audioCtx||musicMuted)return;if(idx>=notes.length){if(loop){bgmTimeout=setTimeout(()=>playMelodyLoop(notes,true,type,tempo,0),200)}return}
   const[freq,dur]=notes[idx];const d=(60/tempo)*dur;
-  if(freq>0){ensureAudio();const o=audioCtx.createOscillator();const g=audioCtx.createGain();o.type=type;o.frequency.value=freq;g.gain.value=musicVol;o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+d*0.85);bgmOscillators.push(o);setTimeout(()=>{const i=bgmOscillators.indexOf(o);if(i>-1)bgmOscillators.splice(i,1)},d*1000+50)}
+  if(freq>0){ensureAudio();const o=audioCtx.createOscillator();const g=audioCtx.createGain();o.type=type;o.frequency.value=freq;g.gain.setValueAtTime(musicVol,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+d*0.9);o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+d*0.95);bgmOscillators.push(o);setTimeout(()=>{const i=bgmOscillators.indexOf(o);if(i>-1)bgmOscillators.splice(i,1)},d*1000+50)}
   bgmTimeout=setTimeout(()=>playMelodyLoop(notes,loop,type,tempo,idx+1),d*1000);
 }
-function playBGM(){stopBGM();bgmPlaying='bgm';playMelodyLoop(BGM_NOTES,true,'sine',100,0)}
-function playCookoffMusic(){stopBGM();bgmPlaying='cookoff';playMelodyLoop(COOKOFF_NOTES,true,'triangle',180,0)}
-function playVictoryFanfare(){stopBGM();playMelodyLoop(VICTORY_NOTES,false,'sawtooth',140,0)}
+function playBGM(){stopBGM();bgmPlaying='bgm';playMelodyLoop(BGM_NOTES,true,'square',160,0)}
+function playCookoffMusic(){stopBGM();bgmPlaying='cookoff';playMelodyLoop(COOKOFF_NOTES,true,'square',200,0)}
+function playVictoryFanfare(){stopBGM();playMelodyLoop(VICTORY_NOTES,false,'square',180,0)}
 function toggleMusic(){musicMuted=!musicMuted;if(musicMuted){stopBGM()}else if(bgmPlaying==='bgm'){playBGM()}else if(bgmPlaying==='cookoff'){playCookoffMusic()}const b=$('btn-music');if(b)b.textContent=musicMuted?'🔇':'🎵'}
 
 const $ = id => document.getElementById(id);
