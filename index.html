@@ -179,7 +179,7 @@ body::before {
 .btn-flip:hover { box-shadow:0 8px 30px rgba(247,201,72,.6);animation:none; }
 .btn-stop { background:linear-gradient(145deg,#48BB78,#38A169);color:white;font-size:1.15rem;padding:12px 32px;border-radius:50px;box-shadow:0 4px 15px rgba(72,187,120,.3); }
 .btn-stop:hover { box-shadow:0 8px 25px rgba(72,187,120,.5); }
-.card-container.face-down-clickable { cursor:pointer;transition:transform .2s; }
+.card-container.face-down-clickable { cursor:pointer;transition:transform .2s;-webkit-tap-highlight-color:transparent;touch-action:manipulation; }
 .card-container.face-down-clickable:hover { transform:translateY(-6px); }
 .bust-overlay { position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(229,62,62,.15);border-radius:20px;z-index:30;animation:bustFlash .6s ease-out; }
 .bust-text { font-size:clamp(1.5rem,5vw,2.5rem);font-weight:800;color:var(--red);text-shadow:0 0 30px rgba(229,62,62,.6);animation:bustSlam .5s ease-out; }
@@ -1420,13 +1420,14 @@ async function startFlipPhase() {
 function enableCardClick() {
   const area = $('card-area');
   area.querySelectorAll('.card-container.face-down-clickable').forEach(el => {
-    el.onclick = function() { flipCard(this); };
+    el.onclick = function(e) { e.preventDefault(); flipCard(this); };
+    el.ontouchend = function(e) { e.preventDefault(); flipCard(this); };
   });
 }
 
 function disableCardClick() {
   const area = $('card-area');
-  area.querySelectorAll('.card-container').forEach(el => { el.onclick = null; });
+  area.querySelectorAll('.card-container').forEach(el => { el.onclick = null; el.ontouchend = null; });
 }
 
 async function flipCard(el) {
