@@ -141,6 +141,22 @@ html[dir="rtl"] .player-row { border-left:none;border-right:4px solid var(--oran
 .card-dump .card-front { background: linear-gradient(135deg, #7C3AED, #A855F7); border: 2px solid #c084fc; color: white; }
 .card-burnt .card-front { background: linear-gradient(135deg, #DC2626, #F97316); border: 2px solid #fbbf24; color: white; animation: burntGlow 1.5s ease-in-out infinite; }
 @keyframes burntGlow { 0%, 100% { box-shadow: 0 0 8px rgba(239,68,68,0.4); } 50% { box-shadow: 0 0 20px rgba(239,68,68,0.8), 0 0 40px rgba(249,115,22,0.3); } }
+.card-swap .card-front { background: linear-gradient(135deg, #D97706, #F59E0B); border: 2px solid #FDE68A; color: white; animation: swapGlow 1.5s ease-in-out infinite; }
+@keyframes swapGlow { 0%, 100% { box-shadow: 0 0 8px rgba(245,158,11,0.4); } 50% { box-shadow: 0 0 20px rgba(245,158,11,0.8), 0 0 40px rgba(217,119,6,0.3); } }
+
+/* Heat Selector */
+.heat-selector { display:flex;gap:6px;align-items:center;margin:6px 0; }
+.heat-label { font-size:0.9rem;color:var(--text-muted);margin-right:8px; }
+.heat-btn { padding:8px 16px;border-radius:12px;border:2px solid var(--bg-wood-light);background:var(--bg-wood);color:var(--text-warm);font-family:'Fredoka',sans-serif;font-size:0.9rem;font-weight:600;cursor:pointer;transition:all .2s;touch-action:manipulation;min-width:44px;min-height:44px; }
+.heat-btn:hover,.heat-btn.selected { border-color:var(--orange);background:rgba(255,107,53,0.2);transform:scale(1.05); }
+.heat-btn.selected { background:var(--orange);color:white; }
+
+/* Swap overlay */
+.swap-overlay { position:absolute;inset:0;background:rgba(245,158,11,0.2);border-radius:20px;display:flex;align-items:center;justify-content:center;z-index:50;animation:swapFlash 0.8s ease-out;pointer-events:none; }
+.swap-overlay .swap-text { font-size:clamp(1.8rem,6vw,3rem);font-weight:700;color:#FDE68A;text-shadow:0 0 30px rgba(245,158,11,0.8),0 4px 0 #92400E;animation:bustSlam 0.5s ease-out; }
+@keyframes swapFlash { 0%{background:rgba(245,158,11,0.5)} 100%{background:rgba(245,158,11,0.1)} }
+.spot-station.spot-swapping { animation:spotSwap 0.6s ease-in-out; }
+@keyframes spotSwap { 0%{transform:scale(1);opacity:1} 30%{transform:scale(0.7) rotate(10deg);opacity:0.5} 70%{transform:scale(0.7) rotate(-10deg);opacity:0.5} 100%{transform:scale(1);opacity:1} }
 
 /* Card animations */
 .card-container.card-fly-up { animation: cardFlyUp 0.6s ease-in forwards; }
@@ -231,7 +247,6 @@ html[dir="rtl"] .player-row { border-left:none;border-right:4px solid var(--oran
   .btn-nav { padding: 4px 8px; font-size: 1rem; }
   .btn { padding: 10px 20px; font-size: 1rem; width: 100%; }
   .btn-stop { padding: 12px 32px; font-size: 1.2rem; width: auto; }
-  .btn-continue { width: auto; }
   .turn-banner { padding: 8px 14px; font-size: clamp(1rem, 3.5vw, 1.4rem); border-radius: 12px; }
   .narrator { padding: 10px 14px; font-size: 1rem; min-height: 44px; border-radius: 10px; }
   .card-container { width: 60px; height: 84px; }
@@ -321,6 +336,7 @@ html[dir="rtl"] .player-row { border-left:none;border-right:4px solid var(--oran
   <div class="setup-title" id="setup-title">🧑‍🍳 Kitchen Setup</div>
   <p style="color:var(--text-muted); margin-bottom: 8px;" id="setup-how">How many chefs in the kitchen?</p>
   <div class="count-selector" id="count-selector"></div>
+  <div class="heat-selector" id="heat-selector"></div>
   <div class="player-configs" id="player-configs"></div>
   <button class="btn btn-primary" id="btn-fire" onclick="startGame()" style="margin-top: 10px;">FIRE UP THE KITCHEN! 🔥</button>
 </div>
@@ -359,12 +375,13 @@ html[dir="rtl"] .player-row { border-left:none;border-right:4px solid var(--oran
    ======================================== */
 
 // Card types
-const CARD = { COOKING: 0, READY: 1, DUMP: 2, BURNT: 3 };
+const CARD = { COOKING: 0, READY: 1, DUMP: 2, BURNT: 3, SWAP: 4 };
 const CARD_DATA = [
   { key: 'cooking', cls: 'cooking', color: '#3B82F6' },
   { key: 'ready',   cls: 'ready',   color: '#10B981' },
   { key: 'dump',    cls: 'dump',    color: '#A855F7' },
   { key: 'burnt',   cls: 'burnt',   color: '#EF4444' },
+  { key: 'swap',    cls: 'swap',    color: '#F59E0B' },
 ];
 
 const CARD_SVG = {
@@ -372,6 +389,7 @@ const CARD_SVG = {
   ready: '<svg viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg"><circle cx="22" cy="20" r="10" fill="none" stroke="white" stroke-width="2.5"/><path d="M16 20l4 4 8-8" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M12 34h20" stroke="rgba(255,255,255,0.5)" stroke-width="2" stroke-linecap="round"/></svg>',
   dump: '<svg viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg"><rect x="12" y="14" width="20" height="20" rx="3" fill="none" stroke="white" stroke-width="2.5"/><path d="M18 14v-4h8v4" stroke="white" stroke-width="2" fill="none"/><line x1="18" y1="20" x2="18" y2="28" stroke="rgba(255,255,255,0.6)" stroke-width="2"/><line x1="22" y1="20" x2="22" y2="28" stroke="rgba(255,255,255,0.6)" stroke-width="2"/><line x1="26" y1="20" x2="26" y2="28" stroke="rgba(255,255,255,0.6)" stroke-width="2"/></svg>',
   burnt: '<svg viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg"><path d="M22 6c0 8-10 12-6 20 1 2 3 4 6 4s5-2 6-4c4-8-6-12-6-20z" fill="none" stroke="white" stroke-width="2.5" stroke-linejoin="round"/><path d="M20 22c0 3-3 5-2 8" stroke="rgba(255,255,255,0.5)" stroke-width="1.5" fill="none"/></svg>',
+  swap: '<svg viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg"><path d="M12 16h16l-5-5" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M32 28H16l5 5" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>',
   back: '<svg viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg"><rect x="6" y="6" width="32" height="32" rx="4" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/><text x="22" y="26" text-anchor="middle" fill="rgba(255,255,255,0.15)" font-size="16" font-family="serif">🍳</text></svg>'
 };
 
@@ -404,9 +422,14 @@ const STRINGS = {
     ruleReady: '<strong>✅ Order Ready</strong><br>Served! Removed from game!',
     ruleDump: '<strong>💜 Not My Problem</strong><br>Dumped on next chef!',
     ruleBurnt: '<strong>🔥 Burnt!</strong><br>BUSTED — turn cancelled!',
+    ruleSwap: '<strong>🔀 Station Swap!</strong><br>Everyone switches stations!',
     setupTitle: '🧑‍🍳 Kitchen Setup',
     setupHow: 'How many chefs in the kitchen?',
     setupStart: 'FIRE UP THE KITCHEN! 🔥',
+    heatLabel: '🌡️ Heat:',
+    heatLow: '🧊 Low',
+    heatMed: '🔥 Med',
+    heatHigh: '🌋 High',
     yourName: 'Your name',
     chef: 'Chef',
     you: 'YOU',
@@ -415,6 +438,8 @@ const STRINGS = {
     stop: 'STOP ✋',
     nextBtn: 'NEXT CHEF ➡️',
     burnt: '🔥 BURNT! Turn cancelled!',
+    swap: '🔀 STATION SWAP!',
+    swapMsg: '🔀 Everyone switches stations!',
     served: '✅ {n} order(s) served!',
     dumped: '💜 {n} order(s) dumped on {next}!',
     stillCooking: '🎫 {n} order(s) still cooking...',
@@ -428,6 +453,7 @@ const STRINGS = {
     cardReady: 'Order Ready!',
     cardDump: 'Not My Problem!',
     cardBurnt: 'BURNT!',
+    cardSwap: 'SWAP!',
     victoryTitle: '🏆 KITCHEN CLOSED! 🏆',
     victoryWinner: '{avatar} {name} wins!',
     victorySubtitle: 'The laziest chef in the kitchen!',
@@ -449,56 +475,64 @@ const STRINGS = {
   },
   he: {
     title: '🍳 השף העצלן! 😴',
-    subtitle: '.סלקו את ההזמנות. היו הכי עצלנים',
-    lore: 'הפכו קלפים אחד אחד. הגישו הזמנות, העבירו לאחרים — אבל אם נפל לכם <strong style="color:var(--red)">נשרף</strong>, כל התור עולה באש! 🔥<br>.דעו מתי לעצור',
-    goal: '!🏁 השף הראשון שמסלק את כל ההזמנות מנצח',
-    startBtn: '!🔥 בואו לבשל',
-    ruleCooking: '<strong>🎫 עוד מבשלים</strong><br>.ההזמנה לא מוכנה. נשארת ביד',
-    ruleReady: '<strong>✅ הזמנה מוכנה</strong><br>!הוגשה! יוצאת מהמשחק',
-    ruleDump: '<strong>💜 לא העניין שלי</strong><br>!מועברת לשף הבא',
-    ruleBurnt: '<strong>🔥 נשרף!</strong><br>!חיסול — התור בוטל',
-    setupTitle: '🧑‍🍳 הכנת המטבח',
-    setupHow: '?כמה שפים במטבח',
-    setupStart: '!🔥 מדליקים את הגז',
+    subtitle: 'סלקו את ההזמנות. היו הכי עצלנים.',
+    lore: 'הפכו קלפים אחד אחד. הגישו הזמנות, העבירו לאחרים — אבל אם נפל לכם <strong style="color:var(--red)">נשרף</strong>, כל התור עולה באש! 🔥<br>דעו מתי לעצור.',
+    goal: 'השף הראשון שמסלק את כל ההזמנות מנצח! 🏁',
+    startBtn: 'בואו לבשל! 🔥',
+    ruleCooking: '<strong>עוד מבשלים 🎫</strong><br>ההזמנה לא מוכנה. נשארת ביד.',
+    ruleReady: '<strong>הזמנה מוכנה ✅</strong><br>הוגשה! יוצאת מהמשחק!',
+    ruleDump: '<strong>לא העניין שלי 💜</strong><br>מועברת לשף הבא!',
+    ruleBurnt: '<strong>נשרף! 🔥</strong><br>חיסול — התור בוטל!',
+    ruleSwap: '<strong>החלפת עמדות! 🔀</strong><br>כולם מחליפים עמדות!',
+    setupTitle: 'הכנת המטבח 🧑‍🍳',
+    setupHow: 'כמה שפים במטבח?',
+    setupStart: 'מדליקים את הגז! 🔥',
+    heatLabel: 'חום: 🌡️',
+    heatLow: 'נמוך 🧊',
+    heatMed: 'בינוני 🔥',
+    heatHigh: 'גבוה 🌋',
     yourName: 'השם שלך',
     chef: 'שף',
     you: 'אתה',
     ai: 'מחשב',
-    tapReveal: '!👆 הקש על קלף לגלות',
-    stop: '✋ עצור',
-    nextBtn: '⬅️ השף הבא',
-    burnt: '!🔥 נשרף! התור בוטל',
-    served: '!✅ {n} הזמנות הוגשו',
-    dumped: '!{next} 💜 {n} הזמנות הועברו ל',
-    stillCooking: '...🎫 {n} הזמנות עוד מתבשלות',
-    turnBanner: '{avatar} המטבח של {name}',
-    turnBannerYou: '!{name} ,🔥 התור שלך',
+    tapReveal: 'הקש על קלף לגלות! 👆',
+    stop: 'עצור ✋',
+    nextBtn: 'השף הבא ⬅️',
+    burnt: 'נשרף! התור בוטל! 🔥',
+    swap: 'החלפת עמדות! 🔀',
+    swapMsg: 'כולם מחליפים עמדות! 🔀',
+    served: 'הוגשו {n} הזמנות! ✅',
+    dumped: 'הועברו {n} הזמנות ל{next}! 💜',
+    stillCooking: '{n} הזמנות עוד מתבשלות... 🎫',
+    turnBanner: 'המטבח של {name} {avatar}',
+    turnBannerYou: 'התור שלך, {name}! 🔥',
     orders: 'הזמנות',
-    flipping: '...{name} 🔪 הופך קלפים',
-    aiThinking: '...{name} 🤖 חושב',
-    aiStops: '!{name} ✋ מפסיק להפוך',
+    flipping: '{name} הופך קלפים... 🔪',
+    aiThinking: '{name} חושב... 🤖',
+    aiStops: '{name} מפסיק להפוך! ✋',
     cardCooking: 'עוד מבשלים',
-    cardReady: '!הזמנה מוכנה',
-    cardDump: '!לא העניין שלי',
-    cardBurnt: '!נשרף',
-    victoryTitle: '!🏆 המטבח סגור 🏆',
-    victoryWinner: '!{name} {avatar} ניצח',
-    victorySubtitle: '!השף הכי עצלן במטבח',
+    cardReady: 'הזמנה מוכנה!',
+    cardDump: 'לא העניין שלי!',
+    cardBurnt: 'נשרף!',
+    cardSwap: 'החלפה!',
+    victoryTitle: 'המטבח סגור! 🏆',
+    victoryWinner: '{name} {avatar} ניצח!',
+    victorySubtitle: 'השף הכי עצלן במטבח!',
     statTurns: 'תורות',
     statServed: 'הוגש',
     statDumped: 'הועבר',
     statBusted: 'נשרף',
-    playAgain: '!🍳 לבשל שוב',
-    currentChef: '🔪 מבשל',
-    nextChef: '⏭️ הבא',
-    resolveReady: '!✅ הוגשו {n}',
-    resolveDump: '!{next} 💜 הועברו {n} ל',
-    resolveCooking: '🎫 {n} חזרו ליד',
+    playAgain: 'לבשל שוב! 🍳',
+    currentChef: 'מבשל 🔪',
+    nextChef: 'הבא ⏭️',
+    resolveReady: 'הוגשו {n}! ✅',
+    resolveDump: 'הועברו {n} ל{next}! 💜',
+    resolveCooking: '{n} חזרו ליד 🎫',
     resultSummary: '{ready} הוגשו, {dump} הועברו, {cooking} חזרו',
-    keepGoing: '?🔥 ממשיכים או עוצרים',
-    flipMore: '!👆 הקש על קלף נוסף או עצור',
-    confirmHome: '?לצאת ולחזור הביתה',
-    confirmRestart: '?להתחיל מחדש',
+    keepGoing: 'ממשיכים או עוצרים? 🔥',
+    flipMore: 'הקש על קלף נוסף או עצור! 👆',
+    confirmHome: 'לצאת ולחזור הביתה?',
+    confirmRestart: 'להתחיל מחדש?',
   }
 };
 
@@ -518,6 +552,9 @@ let G = {
   stats: { turns: 0, totalServed: 0, totalDumped: 0, totalBusted: 0 }
 };
 let selectedCount = 2;
+let selectedHeat = 'M';
+let savedPlayerData = [];
+let turnId = 0;
 let isAnimating = false;
 let sfxEnabled = true;
 
@@ -544,7 +581,8 @@ const SFX = {
   dump: () => { playTone(350, 0.15, 'square', 0.06); setTimeout(() => playTone(250, 0.2, 'square', 0.06), 120); },
   burnt: () => { playTone(120, 0.4, 'sawtooth', 0.1); setTimeout(() => playTone(80, 0.5, 'sawtooth', 0.08), 200); },
   win: () => { [523,659,784,1047].forEach((f,i) => setTimeout(() => playTone(f, 0.25, 'square', 0.08), i*150)); },
-  stop: () => { playTone(440, 0.1, 'square', 0.05); setTimeout(() => playTone(440, 0.1, 'square', 0.05), 120); }
+  stop: () => { playTone(440, 0.1, 'square', 0.05); setTimeout(() => playTone(440, 0.1, 'square', 0.05), 120); },
+  swap: () => { [300,400,500,600,500,400].forEach((f,i) => setTimeout(() => playTone(f, 0.1, 'square', 0.06), i*80)); }
 };
 
 function toggleSfx() {
@@ -573,6 +611,7 @@ function updateAllText() {
   document.getElementById('btn-fire').textContent = t('setupStart');
   document.getElementById('btn-again').textContent = t('playAgain');
   renderTitleRules();
+  saveCurrentPlayerData();
   renderSetup();
 }
 
@@ -608,6 +647,7 @@ function renderTitleRules() {
     { key: 'ready',   bg: 'linear-gradient(135deg,#059669,#10B981)', border: '#F7C948', text: t('ruleReady') },
     { key: 'dump',    bg: 'linear-gradient(135deg,#7C3AED,#A855F7)', border: '#c084fc', text: t('ruleDump') },
     { key: 'burnt',   bg: 'linear-gradient(135deg,#DC2626,#F97316)', border: '#fbbf24', text: t('ruleBurnt') },
+    { key: 'swap',    bg: 'linear-gradient(135deg,#D97706,#F59E0B)', border: '#FDE68A', text: t('ruleSwap') },
   ];
   rules.innerHTML = items.map(r => `
     <div class="rule-card">
@@ -625,10 +665,37 @@ function renderSetup() {
     const btn = document.createElement('button');
     btn.className = 'count-btn' + (n === selectedCount ? ' selected' : '');
     btn.textContent = n;
-    btn.onclick = () => { selectedCount = n; renderSetup(); };
+    btn.onclick = () => { saveCurrentPlayerData(); selectedCount = n; renderSetup(); };
     cs.appendChild(btn);
   }
+
+  // Heat selector
+  const hs = document.getElementById('heat-selector');
+  hs.innerHTML = `<span class="heat-label">${t('heatLabel')}</span>`;
+  [['L','heatLow'],['M','heatMed'],['H','heatHigh']].forEach(([val, key]) => {
+    const btn = document.createElement('button');
+    btn.className = 'heat-btn' + (val === selectedHeat ? ' selected' : '');
+    btn.textContent = t(key);
+    btn.onclick = () => { selectedHeat = val; renderSetup(); };
+    hs.appendChild(btn);
+  });
+
   renderPlayerConfigs();
+}
+
+function saveCurrentPlayerData() {
+  for (let i = 0; i < selectedCount; i++) {
+    const nameEl = document.getElementById('pname-' + i);
+    const aiEl = document.getElementById('ai-' + i);
+    const avatarEl = document.getElementById('avatar-display-' + i);
+    if (nameEl) {
+      savedPlayerData[i] = {
+        name: nameEl.value,
+        isAI: aiEl ? aiEl.checked : i > 0,
+        avatar: avatarEl ? avatarEl.dataset.avatar : AVATARS[i % AVATARS.length]
+      };
+    }
+  }
 }
 
 function renderPlayerConfigs() {
@@ -636,8 +703,11 @@ function renderPlayerConfigs() {
   pc.innerHTML = '';
   for (let i = 0; i < selectedCount; i++) {
     const color = PLAYER_COLORS[i % PLAYER_COLORS.length];
-    const defaultAvatar = AVATARS[i % AVATARS.length];
+    const saved = savedPlayerData[i];
+    const defaultAvatar = saved ? saved.avatar : AVATARS[i % AVATARS.length];
     const isFirst = i === 0;
+    const isAI = saved ? saved.isAI : !isFirst;
+    const savedName = saved ? saved.name : '';
     const aiName = AI_CHEFS[currentLang][i % AI_CHEFS[currentLang].length].name;
     const placeholder = isFirst ? t('yourName') : aiName;
     const row = document.createElement('div');
@@ -647,10 +717,10 @@ function renderPlayerConfigs() {
     row.style.animationDelay = (i * 0.08) + 's';
     row.innerHTML = `
       <span class="chef-hat" onclick="toggleAvatarPicker(${i})" data-avatar="${defaultAvatar}" id="avatar-display-${i}">${defaultAvatar}</span>
-      <input type="text" id="pname-${i}" placeholder="${placeholder}" maxlength="16">
+      <input type="text" id="pname-${i}" placeholder="${placeholder}" maxlength="16" value="${savedName}">
       <label class="ai-toggle">
         <span>${t('ai')}</span>
-        <input type="checkbox" id="ai-${i}" ${!isFirst ? 'checked' : ''}>
+        <input type="checkbox" id="ai-${i}" ${isAI ? 'checked' : ''}>
         <span class="toggle-track"><span class="toggle-thumb"></span></span>
       </label>
       <div class="avatar-picker" id="avatar-picker-${i}">
@@ -677,6 +747,7 @@ function selectAvatar(i, avatar) {
 
 // ==================== START GAME ====================
 function startGame() {
+  saveCurrentPlayerData();
   G.players = [];
   G.currentIndex = 0;
   G.turnNumber = 0;
@@ -711,6 +782,7 @@ function startTurn() {
   const p = currentPlayer();
   G.stats.turns++;
   G.luck = { results: [], flipped: [], busted: false };
+  turnId++;
   isAnimating = false;
 
   renderTurnBanner();
@@ -767,14 +839,21 @@ function renderSpotlight() {
 
 // ==================== CARD GENERATION ====================
 function rollCards(count) {
-  // Generate card types based on probabilities: 3/6 cooking, 1/6 ready, 1/6 dump, 1/6 burnt
+  // Heat-based probabilities (out of 12):
+  // L: COOKING 6, READY 2, DUMP 2, BURNT 1, SWAP 1
+  // M: COOKING 5, READY 2, DUMP 2, BURNT 2, SWAP 1
+  // H: COOKING 4, READY 2, DUMP 2, BURNT 3, SWAP 1
+  const burntWeight = selectedHeat === 'L' ? 1 : selectedHeat === 'H' ? 3 : 2;
+  const cookWeight = 7 - burntWeight; // L=6, M=5, H=4
+  const total = cookWeight + 2 + 2 + burntWeight + 1; // always 12
   const results = [];
   for (let i = 0; i < count; i++) {
-    const roll = Math.random() * 6;
-    if (roll < 3) results.push(CARD.COOKING);
-    else if (roll < 4) results.push(CARD.READY);
-    else if (roll < 5) results.push(CARD.DUMP);
-    else results.push(CARD.BURNT);
+    const roll = Math.random() * total;
+    if (roll < cookWeight) results.push(CARD.COOKING);
+    else if (roll < cookWeight + 2) results.push(CARD.READY);
+    else if (roll < cookWeight + 4) results.push(CARD.DUMP);
+    else if (roll < cookWeight + 4 + burntWeight) results.push(CARD.BURNT);
+    else results.push(CARD.SWAP);
   }
   return results;
 }
@@ -818,7 +897,7 @@ function renderCards() {
   area.innerHTML = '';
   for (let i = 0; i < count; i++) {
     const cardType = CARD_DATA[G.luck.results[i]];
-    const labelKey = ['cardCooking','cardReady','cardDump','cardBurnt'][G.luck.results[i]];
+    const labelKey = ['cardCooking','cardReady','cardDump','cardBurnt','cardSwap'][G.luck.results[i]];
     const container = document.createElement('div');
     container.className = `card-container card-${cardType.cls}`;
     container.dataset.index = i;
@@ -857,6 +936,7 @@ function disableAllCards() {
 function flipCard(idx) {
   if (isAnimating || G.luck.busted || G.luck.flipped[idx]) return;
   isAnimating = true;
+  const myTurnId = turnId;
 
   const inner = document.getElementById('card-inner-' + idx);
   if (!inner) { isAnimating = false; return; }
@@ -867,9 +947,12 @@ function flipCard(idx) {
   disableAllCards();
 
   setTimeout(() => {
+    if (turnId !== myTurnId) return;
     const type = G.luck.results[idx];
     if (type === CARD.BURNT) {
       handleBust();
+    } else if (type === CARD.SWAP) {
+      handleSwap();
     } else {
       playCardSound(type);
       updateFlipSummary();
@@ -880,7 +963,6 @@ function flipCard(idx) {
 
       const unflipped = G.luck.flipped.filter(f => !f).length;
       if (unflipped === 0) {
-        // All cards flipped, auto-stop
         isAnimating = false;
         stopFlipping();
         return;
@@ -897,6 +979,7 @@ function playCardSound(type) {
   if (type === CARD.COOKING) SFX.cooking();
   else if (type === CARD.READY) SFX.ready();
   else if (type === CARD.DUMP) SFX.dump();
+  else if (type === CARD.SWAP) SFX.swap();
 }
 
 function countFlippedType(type) {
@@ -912,15 +995,111 @@ function updateFlipSummary() {
   const ready = countFlippedType(CARD.READY);
   const dump = countFlippedType(CARD.DUMP);
   const cooking = countFlippedType(CARD.COOKING);
+  const swap = countFlippedType(CARD.SWAP);
   let html = '';
   if (ready > 0) html += `<span class="flip-badge badge-ready">✅ ${ready}</span>`;
   if (dump > 0) html += `<span class="flip-badge badge-dump">💜 ${dump}</span>`;
   if (cooking > 0) html += `<span class="flip-badge badge-cooking">🎫 ${cooking}</span>`;
+  if (swap > 0) html += `<span class="flip-badge badge-swap">🔀 ${swap}</span>`;
   summary.innerHTML = html;
+}
+
+// ==================== SWAP ====================
+function handleSwap() {
+  G.luck.busted = true; // prevent further flips
+  SFX.swap();
+  disableAllCards();
+  hideBtn('btn-stop');
+  const myTurnId = turnId;
+
+  // Show swap overlay
+  const kitchen = document.getElementById('kitchen-area');
+  const overlay = document.createElement('div');
+  overlay.className = 'swap-overlay';
+  overlay.innerHTML = `<div class="swap-text">${t('swap')}</div>`;
+  kitchen.appendChild(overlay);
+
+  setNarrator(t('swapMsg'), '');
+
+  // Shuffle order counts
+  const orderCounts = G.players.map(p => p.orders);
+  let shuffled;
+  if (G.players.length === 2) {
+    shuffled = [orderCounts[1], orderCounts[0]];
+  } else {
+    shuffled = [...orderCounts];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    // Ensure at least one position changed
+    if (shuffled.every((v, i) => v === orderCounts[i])) {
+      [shuffled[0], shuffled[1]] = [shuffled[1], shuffled[0]];
+    }
+  }
+
+  // Animate stations swapping after overlay
+  setTimeout(() => {
+    if (turnId !== myTurnId) return;
+    overlay.remove();
+
+    // Add swap animation to all station panels
+    document.querySelectorAll('.spot-station').forEach(el => {
+      el.classList.add('spot-swapping');
+    });
+
+    // Fly all cards back
+    document.querySelectorAll('.card-container').forEach(el => {
+      el.classList.add('card-fly-back');
+    });
+  }, 1200);
+
+  // Apply new counts and update display
+  setTimeout(() => {
+    if (turnId !== myTurnId) return;
+
+    G.players.forEach((p, i) => {
+      const oldOrders = p.orders;
+      p.orders = shuffled[i];
+      const diff = p.orders - oldOrders;
+      const spotCount = document.getElementById('spot-count-' + i);
+      if (spotCount) {
+        spotCount.innerHTML = `${p.orders} <small>${t('orders')}</small>`;
+        if (diff !== 0) {
+          spotCount.classList.add(diff > 0 ? 'count-punch' : 'count-shrink');
+          setTimeout(() => spotCount.classList.remove('count-punch', 'count-shrink'), 400);
+        }
+      }
+      if (diff !== 0) {
+        const sign = diff > 0 ? '+' : '';
+        const color = diff > 0 ? 'var(--red)' : 'var(--green)';
+        floatNumber(document.getElementById('spot-' + i), `${sign}${diff}`, color);
+      }
+    });
+
+    renderScoreboard();
+    document.getElementById('flip-summary').innerHTML = '';
+
+    // Check for victory
+    const winner = G.players.find(p => p.orders <= 0);
+    if (winner) {
+      setTimeout(() => showVictory(winner), 600);
+      return;
+    }
+  }, 1800);
+
+  // Auto-advance
+  setTimeout(() => {
+    if (turnId !== myTurnId) return;
+    document.querySelectorAll('.spot-station').forEach(el => el.classList.remove('spot-swapping'));
+    isAnimating = false;
+    nextTurn();
+  }, 2800);
 }
 
 // ==================== BUST ====================
 function handleBust() {
+  if (G.luck.busted) return;
   G.luck.busted = true;
   G.stats.totalBusted++;
   SFX.burnt();
@@ -928,6 +1107,7 @@ function handleBust() {
   hideBtn('btn-stop');
 
   const p = currentPlayer();
+  const myTurnId = turnId;
 
   // Show bust overlay
   const kitchen = document.getElementById('kitchen-area');
@@ -945,6 +1125,7 @@ function handleBust() {
 
   // After shake, fly ALL cards back to chef (flipped + unflipped)
   setTimeout(() => {
+    if (turnId !== myTurnId) return;
     overlay.remove();
     document.querySelectorAll('.card-container').forEach(el => {
       el.classList.remove('card-shake');
@@ -954,6 +1135,7 @@ function handleBust() {
 
   // Auto-advance after cards fly back
   setTimeout(() => {
+    if (turnId !== myTurnId) return;
     document.getElementById('flip-summary').innerHTML = '';
     isAnimating = false;
     nextTurn();
@@ -1128,6 +1310,7 @@ function aiTurn() {
   if (G.phase !== 'game' || G.luck.busted) return;
   const p = currentPlayer();
   if (!p.isAI) return;
+  const myTurnId = turnId;
 
   setNarrator(t('aiThinking', { name: p.name }), '');
 
@@ -1146,7 +1329,6 @@ function aiTurn() {
   let shouldStop = false;
 
   if (totalFlips > 0) {
-    // Calculate aggression based on position
     const avgOrders = G.players.reduce((s, pl) => s + pl.orders, 0) / G.players.length;
     const isBehind = p.orders > avgOrders;
 
@@ -1155,22 +1337,25 @@ function aiTurn() {
     if (cookingFlips >= 2 && goodFlips === 0) shouldStop = true;
     if (totalFlips >= 3 && goodFlips >= 1 && !isBehind) shouldStop = true;
 
-    // Random aggression: if behind, sometimes push further
     if (isBehind && goodFlips < 3 && Math.random() < 0.4) shouldStop = false;
   }
 
   if (shouldStop && totalFlips > 0) {
     setTimeout(() => {
+      if (turnId !== myTurnId) return;
       setNarrator(t('aiStops', { name: p.name }), '');
-      setTimeout(() => stopFlipping(), 500);
+      setTimeout(() => {
+        if (turnId !== myTurnId) return;
+        stopFlipping();
+      }, 500);
     }, 600);
   } else {
-    // Pick a random unflipped card
     const pick = unflippedIndices[Math.floor(Math.random() * unflippedIndices.length)];
     setTimeout(() => {
+      if (turnId !== myTurnId) return;
       flipCard(pick);
-      // After flip resolves, continue AI logic
       setTimeout(() => {
+        if (turnId !== myTurnId) return;
         if (!G.luck.busted && G.phase === 'game' && currentPlayer().isAI) {
           aiTurn();
         }
