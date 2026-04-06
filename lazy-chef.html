@@ -157,8 +157,6 @@ html[dir="rtl"] .player-row { border-left:none;border-right:4px solid var(--oran
 .btn-stop:hover { box-shadow: 0 8px 35px rgba(247,201,72,0.6); animation: none; }
 @keyframes stopPulse { 0%, 100% { box-shadow: 0 4px 20px rgba(247,201,72,0.4); } 50% { box-shadow: 0 4px 35px rgba(247,201,72,0.7); } }
 .btn-stop.hidden { display: none; }
-.btn-continue { background: linear-gradient(145deg, #38B2AC, #4FD1C5); color: #1a0a00; font-size: 1.1rem; padding: 12px 40px; border-radius: 50px; box-shadow: 0 4px 15px rgba(56,178,172,0.3); }
-.btn-continue.hidden { display: none; }
 
 /* Bust Overlay */
 .bust-overlay { position: absolute; inset: 0; background: rgba(220, 38, 38, 0.25); border-radius: 20px; display: flex; align-items: center; justify-content: center; z-index: 50; animation: bustFlash 0.8s ease-out; pointer-events: none; }
@@ -338,8 +336,7 @@ html[dir="rtl"] .player-row { border-left:none;border-right:4px solid var(--oran
   <div class="kitchen-area" id="kitchen-area">
     <div class="card-area" id="card-area"></div>
     <div class="flip-summary" id="flip-summary"></div>
-    <button class="btn btn-stop hidden" id="btn-stop" onclick="stopFlipping()">STOP ✋</button>
-    <button class="btn btn-continue hidden" id="btn-continue" onclick="nextTurn()">NEXT CHEF ➡️</button>
+    <button class="btn btn-stop hidden" id="btn-stop" onclick="stopFlipping()">NEXT CHEF ➡️</button>
   </div>
   <div class="narrator" id="narrator"></div>
 </div>
@@ -792,7 +789,6 @@ function startFlipPhase() {
   renderCards();
   setNarrator(t('tapReveal'), '');
   hideBtn('btn-stop');
-  hideBtn('btn-continue');
   document.getElementById('flip-summary').innerHTML = '';
 
   if (!p.isAI) enableCardTaps();
@@ -860,8 +856,8 @@ function flipCard(idx) {
       playCardSound(type);
       updateFlipSummary();
       const flippedGood = countFlippedType(CARD.READY) + countFlippedType(CARD.DUMP);
-      if (flippedGood > 0 || countFlippedType(CARD.COOKING) > 0) {
-        showBtn('btn-stop', t('stop'));
+      if ((flippedGood > 0 || countFlippedType(CARD.COOKING) > 0) && !currentPlayer().isAI) {
+        showBtn('btn-stop', t('nextBtn'));
       }
 
       const unflipped = G.luck.flipped.filter(f => !f).length;
@@ -927,13 +923,21 @@ function handleBust() {
 
   setNarrator(t('burnt'), 'status-burnt');
 
+  // After shake, fly all flipped cards back to chef
   setTimeout(() => {
     overlay.remove();
-    showBtn('btn-continue', t('nextBtn'));
+    document.querySelectorAll('.card-inner.flipped').forEach(el => {
+      el.parentElement.classList.remove('card-shake');
+      el.parentElement.classList.add('card-fly-back');
+    });
+  }, 1400);
+
+  // Auto-advance after cards fly back
+  setTimeout(() => {
     document.getElementById('flip-summary').innerHTML = '';
     isAnimating = false;
-    setTimeout(() => nextTurn(), 1200);
-  }, 1800);
+    nextTurn();
+  }, 2400);
 }
 
 // ==================== STOP FLIPPING ====================
@@ -1047,12 +1051,11 @@ function stopFlipping() {
       return;
     }
 
-    showBtn('btn-continue', t('nextBtn'));
+    hideBtn('btn-stop');
     isAnimating = false;
     setTimeout(() => nextTurn(), 1200);
   }, delay + 400);
 }
-
 function floatNumber(parent, text, color) {
   if (!parent) return;
   const el = document.createElement('div');
