@@ -1,0 +1,1217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🍳 The Lazy Chef!</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍳</text></svg>">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Patrick+Hand&display=swap');
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg-dark: #1A202C; --bg-wood: #2D3748; --bg-wood-light: #4A5568;
+  --text-warm: #EDF2F7; --text-muted: #CBD5E0;
+  --orange: #ED8936; --golden: #F6E05E; --red: #E53E3E;
+  --green: #48BB78; --purple: #805AD5; --teal: #38B2AC;
+  --glass-bg: rgba(255,255,255,0.06); --glass-border: rgba(255,255,255,0.12);
+}
+body {
+  font-family: 'Fredoka', sans-serif;
+  background: linear-gradient(135deg, #0e141b 0%, #1f2a38 50%, #0e141b 100%);
+  color: var(--text-warm); min-height: 100vh; overflow-x: hidden; position: relative;
+}
+body::before {
+  content: ''; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background-image:
+    linear-gradient(45deg, rgba(255,255,255,0.015) 25%, transparent 25%),
+    linear-gradient(-45deg, rgba(255,255,255,0.015) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, rgba(255,255,255,0.015) 75%),
+    linear-gradient(-45deg, transparent 75%, rgba(255,255,255,0.015) 75%);
+  background-size: 40px 40px; pointer-events: none; z-index: 0;
+}
+.screen { display: none; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; position: relative; z-index: 1; }
+.screen.active { display: flex; }
+.btn { font-family: 'Fredoka', sans-serif; font-weight: 600; font-size: 1.2rem; border: none; border-radius: 16px; padding: 16px 40px; cursor: pointer; transition: all 0.2s; text-transform: uppercase; letter-spacing: 1px; touch-action: manipulation; }
+.btn:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.4); }
+.btn:active { transform: translateY(0); }
+.btn-primary { background: linear-gradient(145deg, #ED8936, #DD6B20); color: white; box-shadow: 0 6px 25px rgba(237,137,54,0.4); }
+.btn-primary:hover { box-shadow: 0 8px 30px rgba(237,137,54,0.6); }
+
+/* Language Toggle */
+.lang-toggle { position:fixed;top:12px;right:12px;z-index:100;display:flex;gap:4px;background:rgba(0,0,0,.5);border-radius:20px;padding:4px;backdrop-filter:blur(8px); }
+.lang-btn { padding:6px 14px;border-radius:16px;border:none;font-size:.85rem;font-weight:600;cursor:pointer;transition:all .2s;background:transparent;color:var(--text-muted);font-family:'Fredoka',sans-serif;touch-action:manipulation; }
+.lang-btn.active { background:var(--orange);color:white; }
+.lang-btn:hover:not(.active) { background:rgba(255,255,255,.1); }
+html[dir="rtl"] .player-row { border-left:none;border-right:4px solid var(--orange); }
+
+/* Title Screen */
+.title-float-container { position: fixed; top: 0; left: 0; right: 0; bottom: 0; overflow: hidden; pointer-events: none; z-index: 0; }
+.title-float { position: absolute; font-size: 2rem; opacity: 0.15; animation: floatUp linear infinite; }
+@keyframes floatUp { 0% { transform: translateY(110vh) rotate(0deg); opacity: 0; } 10% { opacity: 0.15; } 90% { opacity: 0.15; } 100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; } }
+.title-logo { font-size: clamp(2.5rem, 8vw, 5rem); font-weight: 700; text-align: center; text-shadow: 0 4px 0 #cc4400, 0 8px 0 #993300, 0 12px 30px rgba(0,0,0,0.5); animation: titleBounce 2s ease-in-out infinite, titleGlow 3s ease-in-out infinite alternate; margin-bottom: 10px; }
+@keyframes titleBounce { 0%, 100% { transform: translateY(0) rotate(-1deg); } 50% { transform: translateY(-10px) rotate(1deg); } }
+@keyframes titleGlow { 0% { text-shadow: 0 4px 0 #cc4400, 0 8px 0 #993300, 0 12px 30px rgba(0,0,0,0.5); } 100% { text-shadow: 0 4px 0 #cc4400, 0 8px 0 #993300, 0 12px 30px rgba(0,0,0,0.5), 0 0 40px rgba(255,107,53,0.3); } }
+.title-sub { font-size: clamp(1rem, 3vw, 1.5rem); color: var(--golden); font-weight: 500; margin-bottom: 30px; text-align: center; }
+.title-lore { max-width: 600px; text-align: center; font-family: 'Patrick Hand', cursive; font-size: 1.15rem; line-height: 1.6; color: var(--text-muted); margin-bottom: 10px; background: rgba(0,0,0,0.3); border-radius: 16px; padding: 20px 28px; border: 1px solid rgba(255,255,255,0.05); }
+.title-goal { font-size: 1.2rem; color: var(--golden); margin-bottom: 40px; text-align: center; }
+.title-rules { max-width: 680px; margin-bottom: 36px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.rule-card { background: rgba(0,0,0,0.35); border-radius: 12px; padding: 14px 16px; display: flex; align-items: center; gap: 12px; border: 1px solid rgba(255,255,255,0.06); }
+.rule-card .rule-mini-card { width: 48px; height: 66px; border-radius: 6px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+.rule-card .rule-mini-card svg { width: 32px; height: 32px; }
+.rule-card .rule-text { font-size: 0.85rem; color: var(--text-muted); }
+.rule-card .rule-text strong { color: var(--text-warm); }
+
+/* Setup Screen */
+#screen-setup { gap: 24px; }
+.setup-title { font-size: 2rem; font-weight: 700; }
+.count-selector { display: flex; gap: 10px; margin: 10px 0; }
+.count-btn { width: 52px; height: 52px; border-radius: 50%; border: 3px solid var(--bg-wood-light); background: var(--bg-wood); color: var(--text-warm); font-family: 'Fredoka', sans-serif; font-size: 1.3rem; font-weight: 600; cursor: pointer; transition: all 0.2s; touch-action: manipulation; }
+.count-btn:hover, .count-btn.selected { border-color: var(--orange); background: rgba(255,107,53,0.2); transform: scale(1.1); }
+.count-btn.selected { background: var(--orange); color: white; }
+.player-configs { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 500px; }
+.player-row { display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.3); border-radius: 10px; padding: 8px 12px; border-left: 4px solid var(--orange); animation: slideIn 0.3s ease-out forwards; opacity: 0; transform: translateX(-20px); flex-wrap: wrap; }
+@keyframes slideIn { to { opacity: 1; transform: translateX(0); } }
+.player-row .chef-hat { font-size: 1.5rem; cursor: pointer; }
+.player-row input { flex: 1; min-width: 80px; background: rgba(255,255,255,0.12); border: 2px solid rgba(255,255,255,0.18); border-radius: 8px; padding: 6px 10px; color: var(--text-warm); font-family: 'Fredoka', sans-serif; font-size: 0.95rem; }
+.player-row input:focus { outline: none; border-color: var(--orange); }
+.ai-toggle { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; color: var(--text-muted); cursor: pointer; user-select: none; }
+.ai-toggle input { display: none; }
+.ai-toggle .toggle-track { width: 40px; height: 22px; border-radius: 11px; background: rgba(255,255,255,0.15); position: relative; transition: background 0.2s; }
+.ai-toggle input:checked + .toggle-track { background: var(--orange); }
+.ai-toggle .toggle-thumb { width: 18px; height: 18px; border-radius: 50%; background: white; position: absolute; top: 2px; left: 2px; transition: transform 0.2s; }
+.ai-toggle input:checked + .toggle-track .toggle-thumb { transform: translateX(18px); }
+.avatar-picker { display:none;gap:4px;margin-top:4px;flex-wrap:wrap;width:100%; }
+.avatar-picker.open { display:flex; }
+.avatar-opt { width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1rem;cursor:pointer;border:2px solid transparent;transition:all .2s;background:rgba(255,255,255,.05);touch-action:manipulation; }
+.avatar-opt:hover { background:rgba(255,255,255,.12);transform:scale(1.15); }
+.avatar-opt.selected { border-color:var(--orange);background:rgba(255,107,53,.2);transform:scale(1.2); }
+
+/* Game Screen */
+#screen-game { justify-content: flex-start; padding: 16px; min-height: 100vh; gap: 12px; }
+.game-nav { display:flex;gap:8px;width:100%;max-width:900px;justify-content:flex-end;padding:0 4px;margin-bottom:-4px; }
+.btn-nav { background:rgba(255,255,255,0.06);border:1.5px solid rgba(255,255,255,0.1);border-radius:10px;padding:6px 10px;font-size:1.1rem;cursor:pointer;color:var(--text-muted);transition:all .2s;backdrop-filter:blur(6px);min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;touch-action:manipulation; }
+.btn-nav:hover { background:rgba(255,255,255,0.12);color:var(--text-warm);transform:scale(1.05); }
+
+.turn-banner { font-size: clamp(1.2rem, 4vw, 1.8rem); font-weight: 700; text-align: center; padding: 10px 24px; border-radius: 16px; background: rgba(255,255,255,0.06); backdrop-filter: blur(8px); width: 100%; max-width: 900px; border: 2px solid rgba(255,255,255,0.1); animation: bannerPop 0.4s ease-out; }
+@keyframes bannerPop { 0% { transform: scale(0.8); opacity: 0; } 50% { transform: scale(1.05); } 100% { transform: scale(1); opacity: 1; } }
+
+/* Scoreboard */
+.scoreboard-strip { display:flex;gap:8px;justify-content:center;flex-wrap:wrap;width:100%;max-width:900px; }
+.sb-chip { display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:20px;background:rgba(255,255,255,0.06);backdrop-filter:blur(6px);border:1.5px solid rgba(255,255,255,.08);font-size:.8rem;transition:all .3s;overflow:hidden; }
+.sb-chip .sb-avatar { font-size:1.1rem;flex-shrink:0; }
+.sb-chip .sb-name { white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:1; }
+.sb-chip .sb-count { font-weight:700;font-size:1rem;flex-shrink:0; }
+.sb-chip.sb-active { border-color:var(--golden);background:rgba(247,201,72,.1); }
+.sb-chip.sb-next { border-color:var(--teal);background:rgba(78,205,196,.1); }
+.sb-chip.sb-zero { border-color:var(--green);background:rgba(72,187,120,.15); }
+
+/* Spotlight */
+.spotlight-row { display:flex;gap:16px;justify-content:center;width:100%;max-width:900px;align-items:stretch; }
+.spot-station { flex:1 1 0;max-width:400px;min-width:0;background:rgba(255,255,255,0.05);backdrop-filter:blur(8px);border-radius:16px;padding:16px 20px;border:2.5px solid rgba(255,255,255,.08);transition:all .3s;position:relative;overflow:hidden;min-height:100px; }
+.spot-station::before { content:'';position:absolute;top:0;left:0;right:0;height:5px;border-radius:16px 16px 0 0; }
+.spot-station.spot-active { border-color:var(--golden);box-shadow:0 0 25px rgba(247,201,72,.3); }
+.spot-station.spot-active::before { background:var(--golden); }
+.spot-station.spot-next { border-color:var(--teal);box-shadow:0 0 15px rgba(78,205,196,.15); }
+.spot-station.spot-next::before { background:var(--teal); }
+.spot-label { font-size:.7rem;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:4px; }
+.spot-label.label-active { color:var(--golden); }
+.spot-label.label-next { color:var(--teal); }
+.spot-name { font-size:1.3rem;font-weight:700;display:flex;align-items:center;gap:8px;margin-bottom:6px; }
+.spot-count { font-size:2rem;font-weight:700;display:flex;align-items:center;gap:6px; }
+.spot-count small { font-size:.75rem;font-weight:400;color:var(--text-muted); }
+.spot-vs { flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:var(--text-muted);padding:0 4px; }
+
+/* Kitchen + Cards */
+.kitchen-area { background: rgba(255,255,255,0.05); border-radius: 20px; padding: 20px; width: 100%; max-width: 900px; border: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column; align-items: center; min-height: 180px; position: relative; overflow: hidden; backdrop-filter: blur(12px); }
+.card-area { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; padding: 10px; min-height: 130px; width: 100%; perspective: 800px; }
+.card-container { width: 80px; height: 110px; perspective: 600px; position: relative; cursor: pointer; transition: transform 0.2s ease; touch-action: manipulation; }
+.card-container:hover { transform: translateY(-4px); }
+.card-container:active { transform: scale(0.95); }
+.card-container.disabled { pointer-events: none; opacity: 0.6; cursor: default; }
+.card-inner { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.5s ease; }
+.card-inner.flipped { transform: rotateY(180deg); }
+.card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 3px 12px rgba(0,0,0,0.4); overflow: hidden; }
+.card-back { background: linear-gradient(135deg, #2D3748, #4A5568); border: 2px solid rgba(255,255,255,0.12); }
+.card-front { transform: rotateY(180deg); padding: 4px; }
+.card-front .card-svg { width: 44px; height: 44px; margin-top: 4px; }
+.card-front .card-label { font-family: 'Fredoka', sans-serif; font-size: 0.65rem; font-weight: 600; margin-top: auto; margin-bottom: 6px; text-align: center; line-height: 1.1; padding: 0 2px; }
+.card-cooking .card-front { background: linear-gradient(135deg, #2563EB, #3B82F6); border: 2px solid #60A5FA; color: white; }
+.card-ready .card-front { background: linear-gradient(135deg, #059669, #10B981); border: 2px solid var(--golden); color: white; }
+.card-dump .card-front { background: linear-gradient(135deg, #7C3AED, #A855F7); border: 2px solid #c084fc; color: white; }
+.card-burnt .card-front { background: linear-gradient(135deg, #DC2626, #F97316); border: 2px solid #fbbf24; color: white; animation: burntGlow 1.5s ease-in-out infinite; }
+@keyframes burntGlow { 0%, 100% { box-shadow: 0 0 8px rgba(239,68,68,0.4); } 50% { box-shadow: 0 0 20px rgba(239,68,68,0.8), 0 0 40px rgba(249,115,22,0.3); } }
+
+/* Card animations */
+.card-container.card-fly-up { animation: cardFlyUp 0.6s ease-in forwards; }
+@keyframes cardFlyUp { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-200px) scale(0.5); opacity: 0; } }
+.card-container.card-fly-right { animation: cardFlyRight 0.6s ease-in forwards; }
+@keyframes cardFlyRight { 0% { transform: translateX(0) scale(1); opacity: 1; } 100% { transform: translateX(200px) scale(0.6); opacity: 0; } }
+.card-container.card-fly-back { animation: cardFlyBack 0.5s ease-in forwards; }
+@keyframes cardFlyBack { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(0.7) translateY(20px); opacity: 0; } }
+.card-container.card-shake { animation: cardShake 0.5s ease-in-out; }
+@keyframes cardShake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)} }
+
+/* Stop Button */
+.btn-stop { background: linear-gradient(145deg, #F6E05E, #ED8936); color: #1a0a00; font-size: 1.5rem; padding: 16px 60px; border-radius: 50px; box-shadow: 0 4px 20px rgba(246,224,94,0.3); animation: stopPulse 2s ease-in-out infinite; }
+.btn-stop:hover { box-shadow: 0 8px 35px rgba(247,201,72,0.6); animation: none; }
+@keyframes stopPulse { 0%, 100% { box-shadow: 0 4px 20px rgba(247,201,72,0.4); } 50% { box-shadow: 0 4px 35px rgba(247,201,72,0.7); } }
+.btn-stop.hidden { display: none; }
+.btn-continue { background: linear-gradient(145deg, #38B2AC, #4FD1C5); color: #1a0a00; font-size: 1.1rem; padding: 12px 40px; border-radius: 50px; box-shadow: 0 4px 15px rgba(56,178,172,0.3); }
+.btn-continue.hidden { display: none; }
+
+/* Bust Overlay */
+.bust-overlay { position: absolute; inset: 0; background: rgba(220, 38, 38, 0.25); border-radius: 20px; display: flex; align-items: center; justify-content: center; z-index: 50; animation: bustFlash 0.8s ease-out; pointer-events: none; }
+.bust-overlay .bust-text { font-size: clamp(2rem, 7vw, 3.5rem); font-weight: 700; color: #fbbf24; text-shadow: 0 0 30px rgba(220,38,38,0.8), 0 4px 0 #991b1b; animation: bustSlam 0.5s ease-out; }
+@keyframes bustFlash { 0% { background: rgba(220,38,38,0.6); } 100% { background: rgba(220,38,38,0.15); } }
+@keyframes bustSlam { 0% { transform: scale(2); opacity: 0; } 60% { transform: scale(0.95); } 100% { transform: scale(1); opacity: 1; } }
+
+/* Narrator */
+.narrator { width:100%;max-width:900px;text-align:center;padding:14px 24px;border-radius:14px;font-family:'Patrick Hand',cursive;font-size:1.25rem;color:var(--text-warm);min-height:56px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.08);backdrop-filter:blur(10px);border:1.5px solid rgba(255,255,255,.08);transition:all .3s;line-height:1.4; }
+.narrator.status-burnt { color:#fca5a5;background:rgba(229,62,62,.15);border-color:rgba(230,57,70,.3); }
+.narrator.status-win { color:var(--golden);background:rgba(247,201,72,.15);border-color:rgba(247,201,72,.3);font-weight:600; }
+.narrator.status-ready { color:#6ee7b7;background:rgba(72,187,120,.12);border-color:rgba(16,185,129,.25); }
+.narrator.status-dump { color:#c4b5fd;background:rgba(128,90,213,.12);border-color:rgba(168,85,247,.25); }
+.narrator.status-cooking { color:#93C5FD;background:rgba(59,130,246,.12);border-color:rgba(59,130,246,.25); }
+@keyframes fadeIn { from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)} }
+
+/* Blink animations for stations */
+.spot-station.blink-green { animation:blinkGreen .4s ease-out; }
+@keyframes blinkGreen { 0%{box-shadow:0 0 0 rgba(16,185,129,0)} 50%{box-shadow:0 0 30px rgba(16,185,129,.7)} 100%{box-shadow:0 0 0 rgba(16,185,129,0)} }
+.spot-station.blink-purple { animation:blinkPurple .4s ease-out; }
+@keyframes blinkPurple { 0%{box-shadow:0 0 0 rgba(168,85,247,0)} 50%{box-shadow:0 0 30px rgba(168,85,247,.7)} 100%{box-shadow:0 0 0 rgba(168,85,247,0)} }
+.spot-station.blink-red { animation:blinkRed .4s ease-out; }
+@keyframes blinkRed { 0%{box-shadow:0 0 0 rgba(239,68,68,0)} 50%{box-shadow:0 0 30px rgba(239,68,68,.7)} 100%{box-shadow:0 0 0 rgba(239,68,68,0)} }
+.sb-chip.blink-green { animation:blinkGreen .4s ease-out; }
+.sb-chip.blink-purple { animation:blinkPurple .4s ease-out; }
+.sb-chip.blink-red { animation:blinkRed .4s ease-out; }
+
+/* Spot count animations */
+.spot-count.count-punch { animation:countPunch .4s ease-out; }
+@keyframes countPunch { 0%{transform:scale(1)} 40%{transform:scale(1.6)} 100%{transform:scale(1)} }
+.spot-count.count-shrink { animation:countShrink .4s ease-out; }
+@keyframes countShrink { 0%{transform:scale(1);opacity:1} 40%{transform:scale(.5);opacity:.3} 100%{transform:scale(1);opacity:1} }
+.spot-station.active { animation:pulseBorder 2s ease-in-out infinite; }
+@keyframes pulseBorder { 0%,100%{box-shadow:0 0 8px rgba(247,201,72,.3)} 50%{box-shadow:0 0 20px rgba(247,201,72,.6),0 0 40px rgba(247,201,72,.2)} }
+
+/* Station float numbers */
+.station-float { position:absolute;z-index:30;font-size:1.8rem;font-weight:800;pointer-events:none;text-shadow:0 2px 8px rgba(0,0,0,.6);animation:floatBigNum 1.4s ease-out forwards;white-space:nowrap; }
+@keyframes floatBigNum { 0%{opacity:1;transform:translateY(0) scale(.7);} 20%{opacity:1;transform:translateY(-8px) scale(1.2);} 100%{opacity:0;transform:translateY(-50px) scale(1);} }
+
+/* Victory Screen */
+#screen-victory { gap: 20px; text-align: center; }
+.victory-title { font-size: clamp(2rem, 7vw, 3.5rem); font-weight: 700; color: var(--golden); text-shadow: 0 4px 0 #b8860b, 0 8px 30px rgba(0,0,0,0.4); animation: titleBounce 2s ease-in-out infinite; }
+.winner-display { font-size: clamp(1.5rem, 5vw, 2.5rem); font-weight: 600; padding: 16px 40px; border-radius: 20px; background: rgba(247,201,72,0.15); border: 2px solid var(--golden); }
+.victory-subtitle { font-size: 1.2rem; color: var(--text-muted); font-family: 'Patrick Hand', cursive; }
+.victory-stats { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; margin: 10px 0; }
+.stat-card { background: rgba(0,0,0,0.3); border-radius: 12px; padding: 12px 20px; text-align: center; border: 1px solid rgba(255,255,255,0.06); }
+.stat-card .stat-val { font-size: 1.8rem; font-weight: 700; }
+.stat-card .stat-label { font-size: 0.75rem; color: var(--text-muted); }
+.confetti-container { position: fixed; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; z-index: 200; overflow: hidden; }
+.confetti-piece { position: absolute; width: 10px; height: 10px; top: -20px; animation: confettiFall linear forwards; }
+@keyframes confettiFall { 0% { transform: translateY(0) rotate(0deg); opacity: 1; } 100% { transform: translateY(110vh) rotate(720deg); opacity: 0; } }
+
+/* Flipped summary badges */
+.flip-summary { display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin:8px 0; }
+.flip-badge { padding:4px 10px;border-radius:12px;font-size:.8rem;font-weight:600;display:flex;align-items:center;gap:4px; }
+.flip-badge.badge-ready { background:rgba(16,185,129,.2);color:#6ee7b7;border:1px solid rgba(16,185,129,.3); }
+.flip-badge.badge-dump { background:rgba(168,85,247,.2);color:#c4b5fd;border:1px solid rgba(168,85,247,.3); }
+.flip-badge.badge-cooking { background:rgba(59,130,246,.2);color:#93C5FD;border:1px solid rgba(59,130,246,.3); }
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}
+
+/* Mobile Responsive */
+@media (max-width: 600px) {
+  .screen { padding: 12px 8px; }
+  .kitchen-area { padding: 12px 8px; min-height: 160px; border-radius: 14px; margin-top: 4px; }
+  .game-nav { margin-top: 36px; }
+  .btn-nav { padding: 4px 8px; font-size: 1rem; }
+  .btn { padding: 10px 20px; font-size: 1rem; width: 100%; }
+  .btn-stop { padding: 12px 32px; font-size: 1.2rem; width: auto; }
+  .btn-continue { width: auto; }
+  .turn-banner { padding: 8px 14px; font-size: clamp(1rem, 3.5vw, 1.4rem); border-radius: 12px; }
+  .narrator { padding: 10px 14px; font-size: 1rem; min-height: 44px; border-radius: 10px; }
+  .card-container { width: 60px; height: 84px; }
+  .card-front .card-svg { width: 30px; height: 30px; }
+  .card-front .card-label { font-size: 0.45rem; }
+  .title-rules { grid-template-columns: 1fr; max-width: 100%; gap: 8px; margin-bottom: 20px; }
+  .rule-card { padding: 10px 12px; gap: 8px; }
+  .rule-card .rule-mini-card { width: 40px; height: 54px; }
+  .rule-card .rule-text { font-size: 0.8rem; }
+  .player-configs { max-width: 100%; }
+  .player-row { padding: 6px 10px; gap: 6px; }
+  .player-row input { font-size: 0.85rem; padding: 5px 8px; }
+  .scoreboard-strip { gap: 4px; }
+  .sb-chip { padding: 4px 8px; font-size: 0.72rem; gap: 4px; }
+  .sb-chip .sb-avatar { font-size: 0.95rem; }
+  .sb-chip .sb-count { font-size: 0.85rem; }
+  .spotlight-row { flex-direction: row; gap: 6px; }
+  .spot-station { padding: 8px 10px; min-height: auto; border-radius: 10px; }
+  .spot-label { font-size: .6rem; margin-bottom: 2px; }
+  .spot-name { font-size: .95rem; gap: 4px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .spot-count { font-size: 1.3rem; gap: 4px; }
+  .spot-count small { font-size: .6rem; }
+  .spot-vs { font-size: 1rem; padding: 0; flex: 0 0 auto; }
+  .victory-title { font-size: clamp(1.6rem, 6vw, 2.5rem); }
+  .victory-stats { gap: 10px; }
+  .stat-card { padding: 8px 12px; }
+  .stat-card .stat-val { font-size: 1.4rem; }
+  .stat-card .stat-label { font-size: 0.7rem; }
+  .lang-toggle { top: 6px; right: 6px; padding: 3px; }
+  .lang-btn { padding: 4px 10px; font-size: 0.75rem; min-width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center; }
+  .count-btn { min-width: 44px; min-height: 44px; }
+  .avatar-opt { min-width: 44px; min-height: 44px; font-size: 1.4rem; }
+}
+
+@media (max-width: 380px) {
+  .screen { padding: 8px 4px; }
+  .kitchen-area { padding: 8px 4px; min-height: 140px; }
+  .btn { padding: 8px 14px; font-size: 0.9rem; }
+  .btn-stop { padding: 10px 24px; font-size: 1.05rem; }
+  .turn-banner { padding: 6px 10px; font-size: clamp(0.85rem, 3vw, 1.1rem); }
+  .narrator { padding: 8px 10px; font-size: 0.85rem; min-height: 38px; }
+  .card-container { width: 50px; height: 70px; }
+  .card-front .card-svg { width: 24px; height: 24px; }
+  .card-front .card-label { font-size: 0.4rem; }
+  .title-rules { gap: 6px; margin-bottom: 14px; }
+  .rule-card { padding: 6px 8px; gap: 6px; }
+  .rule-card .rule-mini-card { width: 34px; height: 46px; }
+  .rule-card .rule-mini-card svg { width: 24px; height: 24px; }
+  .rule-card .rule-text { font-size: 0.72rem; }
+  .player-row input { min-width: 60px; }
+  .sb-chip { padding: 3px 6px; font-size: 0.65rem; }
+  .sb-chip .sb-count { font-size: 0.75rem; }
+  .spot-station { padding: 6px 8px; }
+  .spot-name { font-size: .85rem; }
+  .spot-count { font-size: 1.1rem; }
+  .victory-title { font-size: clamp(1.3rem, 5vw, 2rem); }
+  .stat-card { padding: 6px 8px; }
+  .stat-card .stat-val { font-size: 1.15rem; }
+  .stat-card .stat-label { font-size: 0.65rem; }
+  .lang-toggle { top: 4px; right: 4px; }
+  .lang-btn { padding: 3px 7px; font-size: 0.7rem; }
+}
+</style>
+</head>
+<body>
+
+<div class="lang-toggle">
+  <button class="lang-btn active" id="lang-en" onclick="setLang('en')">EN</button>
+  <button class="lang-btn" id="lang-he" onclick="setLang('he')">עב</button>
+</div>
+
+<!-- TITLE SCREEN -->
+<div id="screen-title" class="screen active">
+  <div class="title-float-container" id="floating-food"></div>
+  <div class="title-logo" id="title-logo">🍳 The Lazy Chef! 😴</div>
+  <div class="title-sub" id="title-sub">Clear your orders. Be the laziest.</div>
+  <div class="title-lore" id="title-lore">
+    Flip cards one at a time. Serve orders, dump them on others — but if you hit <strong style="color:var(--red)">Burnt</strong>, your whole turn goes up in smoke! 🔥<br>Know when to stop.
+  </div>
+  <div class="title-rules" id="title-rules"></div>
+  <div class="title-goal" id="title-goal">🏁 First chef to clear all orders wins!</div>
+  <button class="btn btn-primary" id="btn-start" onclick="showScreen('setup')">START COOKING! 🔥</button>
+</div>
+
+<!-- SETUP SCREEN -->
+<div id="screen-setup" class="screen">
+  <div class="setup-title" id="setup-title">🧑‍🍳 Kitchen Setup</div>
+  <p style="color:var(--text-muted); margin-bottom: 8px;" id="setup-how">How many chefs in the kitchen?</p>
+  <div class="count-selector" id="count-selector"></div>
+  <div class="player-configs" id="player-configs"></div>
+  <button class="btn btn-primary" id="btn-fire" onclick="startGame()" style="margin-top: 10px;">FIRE UP THE KITCHEN! 🔥</button>
+</div>
+
+<!-- GAME SCREEN -->
+<div id="screen-game" class="screen">
+  <div class="game-nav">
+    <button class="btn-nav" onclick="confirmHome()">🏠</button>
+    <button class="btn-nav" onclick="confirmRestart()">🔄</button>
+    <button class="btn-nav" id="btn-sfx" onclick="toggleSfx()">🔊</button>
+  </div>
+  <div class="turn-banner" id="turn-banner"></div>
+  <div class="scoreboard-strip" id="scoreboard-strip"></div>
+  <div class="spotlight-row" id="spotlight-row"></div>
+  <div class="kitchen-area" id="kitchen-area">
+    <div class="card-area" id="card-area"></div>
+    <div class="flip-summary" id="flip-summary"></div>
+    <button class="btn btn-stop hidden" id="btn-stop" onclick="stopFlipping()">STOP ✋</button>
+    <button class="btn btn-continue hidden" id="btn-continue" onclick="nextTurn()">NEXT CHEF ➡️</button>
+  </div>
+  <div class="narrator" id="narrator"></div>
+</div>
+
+<!-- VICTORY SCREEN -->
+<div id="screen-victory" class="screen">
+  <div class="confetti-container" id="confetti-container"></div>
+  <div class="victory-title" id="victory-title"></div>
+  <div class="winner-display" id="winner-display"></div>
+  <div class="victory-subtitle" id="victory-subtitle"></div>
+  <div class="victory-stats" id="victory-stats"></div>
+  <button class="btn btn-primary" onclick="showScreen('setup')" id="btn-again">COOK AGAIN! 🍳</button>
+</div>
+
+<script>
+/* ========================================
+   THE LAZY CHEF — Push-your-luck kitchen card game
+   ======================================== */
+
+// Card types
+const CARD = { COOKING: 0, READY: 1, DUMP: 2, BURNT: 3 };
+const CARD_DATA = [
+  { key: 'cooking', cls: 'cooking', color: '#3B82F6' },
+  { key: 'ready',   cls: 'ready',   color: '#10B981' },
+  { key: 'dump',    cls: 'dump',    color: '#A855F7' },
+  { key: 'burnt',   cls: 'burnt',   color: '#EF4444' },
+];
+
+const CARD_SVG = {
+  cooking: '<svg viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg"><circle cx="22" cy="18" r="8" fill="none" stroke="white" stroke-width="2.5"/><path d="M22 12v6l4 2" stroke="white" stroke-width="2" stroke-linecap="round" fill="none"/><rect x="14" y="30" width="16" height="2.5" rx="1.2" fill="rgba(255,255,255,0.5)"/></svg>',
+  ready: '<svg viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg"><circle cx="22" cy="20" r="10" fill="none" stroke="white" stroke-width="2.5"/><path d="M16 20l4 4 8-8" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M12 34h20" stroke="rgba(255,255,255,0.5)" stroke-width="2" stroke-linecap="round"/></svg>',
+  dump: '<svg viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg"><rect x="12" y="14" width="20" height="20" rx="3" fill="none" stroke="white" stroke-width="2.5"/><path d="M18 14v-4h8v4" stroke="white" stroke-width="2" fill="none"/><line x1="18" y1="20" x2="18" y2="28" stroke="rgba(255,255,255,0.6)" stroke-width="2"/><line x1="22" y1="20" x2="22" y2="28" stroke="rgba(255,255,255,0.6)" stroke-width="2"/><line x1="26" y1="20" x2="26" y2="28" stroke="rgba(255,255,255,0.6)" stroke-width="2"/></svg>',
+  burnt: '<svg viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg"><path d="M22 6c0 8-10 12-6 20 1 2 3 4 6 4s5-2 6-4c4-8-6-12-6-20z" fill="none" stroke="white" stroke-width="2.5" stroke-linejoin="round"/><path d="M20 22c0 3-3 5-2 8" stroke="rgba(255,255,255,0.5)" stroke-width="1.5" fill="none"/></svg>',
+  back: '<svg viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg"><rect x="6" y="6" width="32" height="32" rx="4" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/><text x="22" y="26" text-anchor="middle" fill="rgba(255,255,255,0.15)" font-size="16" font-family="serif">🍳</text></svg>'
+};
+
+const PLAYER_COLORS = ['#ED8936','#38B2AC','#805AD5','#E53E3E','#48BB78'];
+const AVATARS = ['👨‍🍳','👩‍🍳','🧑‍🍳','👨‍🍳','👩‍🍳'];
+const CHEF_AVATARS = ['👨‍🍳','👩‍🍳','🧑‍🍳','🤠','🦊','🐻','🐧','🐱','🦁','🐸','👾','🤖'];
+const AI_CHEFS = {
+  en: [
+    { name: 'Gordon Ramen' }, { name: 'Jamie Olive-oil' },
+    { name: 'Guy Fries' }, { name: 'Bobby Flan' }, { name: 'Rachael Rye' }
+  ],
+  he: [
+    { name: 'ישראל מקרוני' }, { name: 'גריל חובב' },
+    { name: 'אייל בפיתה' }, { name: 'חומוס כהן' }, { name: 'אסף גרנולה' }
+  ]
+};
+const STARTING_ORDERS = 6;
+const FOOD_EMOJIS = ['🍕','🌮','🍔','🍩','🧁','🥐','🍣','🍗','🥞','🧀','🌶️','🍟','🥚','🍰','🫕'];
+
+// i18n
+let currentLang = 'en';
+const STRINGS = {
+  en: {
+    title: '🍳 The Lazy Chef! 😴',
+    subtitle: 'Clear your orders. Be the laziest.',
+    lore: 'Flip cards one at a time. Serve orders, dump them on others — but if you hit <strong style="color:var(--red)">Burnt</strong>, your whole turn goes up in smoke! 🔥<br>Know when to stop.',
+    goal: '🏁 First chef to clear all orders wins!',
+    startBtn: 'START COOKING! 🔥',
+    ruleCooking: '<strong>🎫 Still Cooking</strong><br>Order not ready. Stays in hand.',
+    ruleReady: '<strong>✅ Order Ready</strong><br>Served! Removed from game!',
+    ruleDump: '<strong>💜 Not My Problem</strong><br>Dumped on next chef!',
+    ruleBurnt: '<strong>🔥 Burnt!</strong><br>BUSTED — turn cancelled!',
+    setupTitle: '🧑‍🍳 Kitchen Setup',
+    setupHow: 'How many chefs in the kitchen?',
+    setupStart: 'FIRE UP THE KITCHEN! 🔥',
+    yourName: 'Your name',
+    chef: 'Chef',
+    you: 'YOU',
+    ai: 'AI',
+    tapReveal: '👆 Tap a card to reveal!',
+    stop: 'STOP ✋',
+    nextBtn: 'NEXT CHEF ➡️',
+    burnt: '🔥 BURNT! Turn cancelled!',
+    served: '✅ {n} order(s) served!',
+    dumped: '💜 {n} order(s) dumped on {next}!',
+    stillCooking: '🎫 {n} order(s) still cooking...',
+    turnBanner: "{avatar} {name}'s Kitchen",
+    turnBannerYou: '🔥 Your Turn, {name}!',
+    orders: 'orders',
+    flipping: '🔪 {name} is flipping...',
+    aiThinking: '🤖 {name} is thinking...',
+    aiStops: '✋ {name} stops flipping!',
+    cardCooking: 'Still Cooking',
+    cardReady: 'Order Ready!',
+    cardDump: 'Not My Problem!',
+    cardBurnt: 'BURNT!',
+    victoryTitle: '🏆 KITCHEN CLOSED! 🏆',
+    victoryWinner: '{avatar} {name} wins!',
+    victorySubtitle: 'The laziest chef in the kitchen!',
+    statTurns: 'Turns',
+    statServed: 'Served',
+    statDumped: 'Dumped',
+    statBusted: 'Busted',
+    playAgain: 'COOK AGAIN! 🍳',
+    currentChef: '🔪 COOKING',
+    nextChef: '⏭️ NEXT',
+    resolveReady: '✅ Served {n}!',
+    resolveDump: '💜 Dumped {n} on {next}!',
+    resolveCooking: '🎫 {n} back to hand',
+    resultSummary: '{ready} served, {dump} dumped, {cooking} returned',
+    keepGoing: '🔥 Keep going or stop?',
+    flipMore: '👆 Tap another card or STOP!',
+    confirmHome: 'Leave game and go home?',
+    confirmRestart: 'Restart the game?',
+  },
+  he: {
+    title: '🍳 השף העצלן! 😴',
+    subtitle: '.סלקו את ההזמנות. היו הכי עצלנים',
+    lore: 'הפכו קלפים אחד אחד. הגישו הזמנות, העבירו לאחרים — אבל אם נפל לכם <strong style="color:var(--red)">נשרף</strong>, כל התור עולה באש! 🔥<br>.דעו מתי לעצור',
+    goal: '!🏁 השף הראשון שמסלק את כל ההזמנות מנצח',
+    startBtn: '!🔥 בואו לבשל',
+    ruleCooking: '<strong>🎫 עוד מבשלים</strong><br>.ההזמנה לא מוכנה. נשארת ביד',
+    ruleReady: '<strong>✅ הזמנה מוכנה</strong><br>!הוגשה! יוצאת מהמשחק',
+    ruleDump: '<strong>💜 לא העניין שלי</strong><br>!מועברת לשף הבא',
+    ruleBurnt: '<strong>🔥 נשרף!</strong><br>!חיסול — התור בוטל',
+    setupTitle: '🧑‍🍳 הכנת המטבח',
+    setupHow: '?כמה שפים במטבח',
+    setupStart: '!🔥 מדליקים את הגז',
+    yourName: 'השם שלך',
+    chef: 'שף',
+    you: 'אתה',
+    ai: 'מחשב',
+    tapReveal: '!👆 הקש על קלף לגלות',
+    stop: '✋ עצור',
+    nextBtn: '⬅️ השף הבא',
+    burnt: '!🔥 נשרף! התור בוטל',
+    served: '!✅ {n} הזמנות הוגשו',
+    dumped: '!{next} 💜 {n} הזמנות הועברו ל',
+    stillCooking: '...🎫 {n} הזמנות עוד מתבשלות',
+    turnBanner: '{avatar} המטבח של {name}',
+    turnBannerYou: '!{name} ,🔥 התור שלך',
+    orders: 'הזמנות',
+    flipping: '...{name} 🔪 הופך קלפים',
+    aiThinking: '...{name} 🤖 חושב',
+    aiStops: '!{name} ✋ מפסיק להפוך',
+    cardCooking: 'עוד מבשלים',
+    cardReady: '!הזמנה מוכנה',
+    cardDump: '!לא העניין שלי',
+    cardBurnt: '!נשרף',
+    victoryTitle: '!🏆 המטבח סגור 🏆',
+    victoryWinner: '!{name} {avatar} ניצח',
+    victorySubtitle: '!השף הכי עצלן במטבח',
+    statTurns: 'תורות',
+    statServed: 'הוגש',
+    statDumped: 'הועבר',
+    statBusted: 'נשרף',
+    playAgain: '!🍳 לבשל שוב',
+    currentChef: '🔪 מבשל',
+    nextChef: '⏭️ הבא',
+    resolveReady: '!✅ הוגשו {n}',
+    resolveDump: '!{next} 💜 הועברו {n} ל',
+    resolveCooking: '🎫 {n} חזרו ליד',
+    resultSummary: '{ready} הוגשו, {dump} הועברו, {cooking} חזרו',
+    keepGoing: '?🔥 ממשיכים או עוצרים',
+    flipMore: '!👆 הקש על קלף נוסף או עצור',
+    confirmHome: '?לצאת ולחזור הביתה',
+    confirmRestart: '?להתחיל מחדש',
+  }
+};
+
+function t(key, vars) {
+  let s = STRINGS[currentLang][key] || STRINGS.en[key] || key;
+  if (vars) Object.keys(vars).forEach(k => { s = s.replace(new RegExp('\\{'+k+'\\}', 'g'), vars[k]); });
+  return s;
+}
+
+// Game state
+let G = {
+  players: [],
+  currentIndex: 0,
+  phase: 'title',
+  turnNumber: 0,
+  luck: { results: [], flipped: [], busted: false },
+  stats: { turns: 0, totalServed: 0, totalDumped: 0, totalBusted: 0 }
+};
+let selectedCount = 2;
+let isAnimating = false;
+let sfxEnabled = true;
+
+// ==================== SOUND EFFECTS ====================
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audioCtx;
+function ensureAudio() { if (!audioCtx) audioCtx = new AudioCtx(); }
+function playTone(freq, dur, type, vol) {
+  if (!sfxEnabled) return;
+  ensureAudio();
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  o.type = type || 'square';
+  o.frequency.setValueAtTime(freq, audioCtx.currentTime);
+  g.gain.setValueAtTime(vol || 0.08, audioCtx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+  o.connect(g); g.connect(audioCtx.destination);
+  o.start(); o.stop(audioCtx.currentTime + dur);
+}
+const SFX = {
+  flip: () => playTone(600, 0.08, 'square', 0.06),
+  cooking: () => { playTone(400, 0.15, 'square', 0.06); setTimeout(() => playTone(300, 0.15, 'square', 0.05), 100); },
+  ready: () => { playTone(523, 0.12, 'square', 0.07); setTimeout(() => playTone(659, 0.12, 'square', 0.07), 100); setTimeout(() => playTone(784, 0.18, 'square', 0.08), 200); },
+  dump: () => { playTone(350, 0.15, 'square', 0.06); setTimeout(() => playTone(250, 0.2, 'square', 0.06), 120); },
+  burnt: () => { playTone(120, 0.4, 'sawtooth', 0.1); setTimeout(() => playTone(80, 0.5, 'sawtooth', 0.08), 200); },
+  win: () => { [523,659,784,1047].forEach((f,i) => setTimeout(() => playTone(f, 0.25, 'square', 0.08), i*150)); },
+  stop: () => { playTone(440, 0.1, 'square', 0.05); setTimeout(() => playTone(440, 0.1, 'square', 0.05), 120); }
+};
+
+function toggleSfx() {
+  sfxEnabled = !sfxEnabled;
+  document.getElementById('btn-sfx').textContent = sfxEnabled ? '🔊' : '🔇';
+}
+
+// ==================== LANGUAGE ====================
+function setLang(lang) {
+  currentLang = lang;
+  document.getElementById('lang-en').classList.toggle('active', lang === 'en');
+  document.getElementById('lang-he').classList.toggle('active', lang === 'he');
+  document.documentElement.dir = lang === 'he' ? 'rtl' : 'ltr';
+  document.documentElement.lang = lang;
+  updateAllText();
+}
+
+function updateAllText() {
+  document.getElementById('title-logo').textContent = currentLang === 'en' ? '🍳 The Lazy Chef! 😴' : '🍳 השף העצלן! 😴';
+  document.getElementById('title-sub').textContent = t('subtitle');
+  document.getElementById('title-lore').innerHTML = t('lore');
+  document.getElementById('title-goal').textContent = t('goal');
+  document.getElementById('btn-start').textContent = t('startBtn');
+  document.getElementById('setup-title').textContent = t('setupTitle');
+  document.getElementById('setup-how').textContent = t('setupHow');
+  document.getElementById('btn-fire').textContent = t('setupStart');
+  document.getElementById('btn-again').textContent = t('playAgain');
+  renderTitleRules();
+  renderSetup();
+}
+
+// ==================== SCREENS ====================
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  G.phase = name;
+  if (name === 'title') initTitleFloaters();
+  if (name === 'setup') renderSetup();
+}
+
+// ==================== TITLE SCREEN ====================
+function initTitleFloaters() {
+  const c = document.getElementById('floating-food');
+  c.innerHTML = '';
+  for (let i = 0; i < 12; i++) {
+    const el = document.createElement('div');
+    el.className = 'title-float';
+    el.textContent = FOOD_EMOJIS[Math.floor(Math.random() * FOOD_EMOJIS.length)];
+    el.style.left = Math.random() * 100 + '%';
+    el.style.animationDuration = (8 + Math.random() * 12) + 's';
+    el.style.animationDelay = (Math.random() * 10) + 's';
+    el.style.fontSize = (1.2 + Math.random() * 1.5) + 'rem';
+    c.appendChild(el);
+  }
+}
+
+function renderTitleRules() {
+  const rules = document.getElementById('title-rules');
+  const items = [
+    { key: 'cooking', bg: 'linear-gradient(135deg,#2563EB,#3B82F6)', border: '#60A5FA', text: t('ruleCooking') },
+    { key: 'ready',   bg: 'linear-gradient(135deg,#059669,#10B981)', border: '#F7C948', text: t('ruleReady') },
+    { key: 'dump',    bg: 'linear-gradient(135deg,#7C3AED,#A855F7)', border: '#c084fc', text: t('ruleDump') },
+    { key: 'burnt',   bg: 'linear-gradient(135deg,#DC2626,#F97316)', border: '#fbbf24', text: t('ruleBurnt') },
+  ];
+  rules.innerHTML = items.map(r => `
+    <div class="rule-card">
+      <div class="rule-mini-card" style="background:${r.bg};border:2px solid ${r.border};">${CARD_SVG[r.key]}</div>
+      <div class="rule-text">${r.text}</div>
+    </div>
+  `).join('');
+}
+
+// ==================== SETUP SCREEN ====================
+function renderSetup() {
+  const cs = document.getElementById('count-selector');
+  cs.innerHTML = '';
+  for (let n = 2; n <= 5; n++) {
+    const btn = document.createElement('button');
+    btn.className = 'count-btn' + (n === selectedCount ? ' selected' : '');
+    btn.textContent = n;
+    btn.onclick = () => { selectedCount = n; renderSetup(); };
+    cs.appendChild(btn);
+  }
+  renderPlayerConfigs();
+}
+
+function renderPlayerConfigs() {
+  const pc = document.getElementById('player-configs');
+  pc.innerHTML = '';
+  for (let i = 0; i < selectedCount; i++) {
+    const color = PLAYER_COLORS[i % PLAYER_COLORS.length];
+    const defaultAvatar = AVATARS[i % AVATARS.length];
+    const isFirst = i === 0;
+    const aiName = AI_CHEFS[currentLang][i % AI_CHEFS[currentLang].length].name;
+    const placeholder = isFirst ? t('yourName') : aiName;
+    const row = document.createElement('div');
+    row.className = 'player-row';
+    row.style.borderLeftColor = color;
+    if (currentLang === 'he') { row.style.borderRightColor = color; }
+    row.style.animationDelay = (i * 0.08) + 's';
+    row.innerHTML = `
+      <span class="chef-hat" onclick="toggleAvatarPicker(${i})" data-avatar="${defaultAvatar}" id="avatar-display-${i}">${defaultAvatar}</span>
+      <input type="text" id="pname-${i}" placeholder="${placeholder}" maxlength="16">
+      <label class="ai-toggle">
+        <span>${t('ai')}</span>
+        <input type="checkbox" id="ai-${i}" ${!isFirst ? 'checked' : ''}>
+        <span class="toggle-track"><span class="toggle-thumb"></span></span>
+      </label>
+      <div class="avatar-picker" id="avatar-picker-${i}">
+        ${CHEF_AVATARS.map(a => `<span class="avatar-opt ${a === defaultAvatar ? 'selected' : ''}" onclick="selectAvatar(${i},'${a}')">${a}</span>`).join('')}
+      </div>
+    `;
+    pc.appendChild(row);
+  }
+}
+
+function toggleAvatarPicker(i) {
+  const picker = document.getElementById('avatar-picker-' + i);
+  picker.classList.toggle('open');
+}
+
+function selectAvatar(i, avatar) {
+  const display = document.getElementById('avatar-display-' + i);
+  display.textContent = avatar;
+  display.dataset.avatar = avatar;
+  const picker = document.getElementById('avatar-picker-' + i);
+  picker.querySelectorAll('.avatar-opt').forEach(o => o.classList.toggle('selected', o.textContent === avatar));
+  picker.classList.remove('open');
+}
+
+// ==================== START GAME ====================
+function startGame() {
+  G.players = [];
+  G.currentIndex = 0;
+  G.turnNumber = 0;
+  G.stats = { turns: 0, totalServed: 0, totalDumped: 0, totalBusted: 0 };
+
+  for (let i = 0; i < selectedCount; i++) {
+    const nameInput = document.getElementById('pname-' + i);
+    const aiCheck = document.getElementById('ai-' + i);
+    const avatarEl = document.getElementById('avatar-display-' + i);
+    const aiName = AI_CHEFS[currentLang][i % AI_CHEFS[currentLang].length].name;
+    const name = nameInput.value.trim() || (i === 0 && !aiCheck.checked ? (currentLang === 'he' ? 'שף' : 'Chef') : aiName);
+    G.players.push({
+      name: name,
+      avatar: avatarEl.dataset.avatar || AVATARS[i],
+      color: PLAYER_COLORS[i % PLAYER_COLORS.length],
+      orders: STARTING_ORDERS,
+      isAI: aiCheck.checked,
+      index: i
+    });
+  }
+
+  showScreen('game');
+  startTurn();
+}
+
+// ==================== TURN MANAGEMENT ====================
+function currentPlayer() { return G.players[G.currentIndex]; }
+function nextPlayerIndex() { return (G.currentIndex + 1) % G.players.length; }
+function nextPlayer() { return G.players[nextPlayerIndex()]; }
+
+function startTurn() {
+  const p = currentPlayer();
+  G.stats.turns++;
+  G.luck = { results: [], flipped: [], busted: false };
+  isAnimating = false;
+
+  renderTurnBanner();
+  renderScoreboard();
+  renderSpotlight();
+  startFlipPhase();
+
+  if (p.isAI) {
+    setTimeout(() => aiTurn(), 800);
+  }
+}
+
+function renderTurnBanner() {
+  const p = currentPlayer();
+  const banner = document.getElementById('turn-banner');
+  const key = p.isAI ? 'turnBanner' : 'turnBannerYou';
+  banner.innerHTML = t(key, { avatar: p.avatar, name: p.name });
+  banner.style.borderColor = p.color;
+}
+
+function renderScoreboard() {
+  const strip = document.getElementById('scoreboard-strip');
+  strip.innerHTML = G.players.map((p, i) => {
+    let cls = 'sb-chip';
+    if (i === G.currentIndex) cls += ' sb-active';
+    else if (i === nextPlayerIndex()) cls += ' sb-next';
+    if (p.orders <= 0) cls += ' sb-zero';
+    return `<div class="${cls}" style="border-color:${i === G.currentIndex ? 'var(--golden)' : i === nextPlayerIndex() ? 'var(--teal)' : p.color}">
+      <span class="sb-avatar">${p.avatar}</span>
+      <span class="sb-name">${p.name}</span>
+      <span class="sb-count" id="sb-count-${i}">${p.orders}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderSpotlight() {
+  const row = document.getElementById('spotlight-row');
+  const p = currentPlayer();
+  const np = nextPlayer();
+  row.innerHTML = `
+    <div class="spot-station spot-active" id="spot-current" style="--pc:${p.color}">
+      <div class="spot-label label-active">${t('currentChef')}</div>
+      <div class="spot-name"><span style="font-size:1.5rem">${p.avatar}</span> ${p.name}</div>
+      <div class="spot-count" id="spot-count-current">${p.orders} <small>${t('orders')}</small></div>
+    </div>
+    <div class="spot-vs">⚡</div>
+    <div class="spot-station spot-next" id="spot-next" style="--pc:${np.color}">
+      <div class="spot-label label-next">${t('nextChef')}</div>
+      <div class="spot-name"><span style="font-size:1.5rem">${np.avatar}</span> ${np.name}</div>
+      <div class="spot-count" id="spot-count-next">${np.orders} <small>${t('orders')}</small></div>
+    </div>
+  `;
+}
+
+// ==================== CARD GENERATION ====================
+function rollCards(count) {
+  // Generate card types based on probabilities: 3/6 cooking, 1/6 ready, 1/6 dump, 1/6 burnt
+  const results = [];
+  for (let i = 0; i < count; i++) {
+    const roll = Math.random() * 6;
+    if (roll < 3) results.push(CARD.COOKING);
+    else if (roll < 4) results.push(CARD.READY);
+    else if (roll < 5) results.push(CARD.DUMP);
+    else results.push(CARD.BURNT);
+  }
+  return results;
+}
+
+// ==================== FLIP PHASE ====================
+function startFlipPhase() {
+  const p = currentPlayer();
+  const count = p.orders;
+  if (count <= 0) { nextTurn(); return; }
+
+  G.luck.results = rollCards(count);
+  G.luck.flipped = new Array(count).fill(false);
+  G.luck.busted = false;
+
+  renderCards();
+  setNarrator(t('tapReveal'), '');
+  hideBtn('btn-stop');
+  hideBtn('btn-continue');
+  document.getElementById('flip-summary').innerHTML = '';
+
+  if (!p.isAI) enableCardTaps();
+}
+
+function renderCards() {
+  const area = document.getElementById('card-area');
+  const count = G.luck.results.length;
+  area.innerHTML = '';
+  for (let i = 0; i < count; i++) {
+    const cardType = CARD_DATA[G.luck.results[i]];
+    const labelKey = ['cardCooking','cardReady','cardDump','cardBurnt'][G.luck.results[i]];
+    const container = document.createElement('div');
+    container.className = `card-container card-${cardType.cls}`;
+    container.dataset.index = i;
+    container.innerHTML = `
+      <div class="card-inner" id="card-inner-${i}">
+        <div class="card-face card-back">${CARD_SVG.back}</div>
+        <div class="card-face card-front">
+          <div class="card-svg">${CARD_SVG[cardType.key]}</div>
+          <div class="card-label">${t(labelKey)}</div>
+        </div>
+      </div>
+    `;
+    area.appendChild(container);
+  }
+}
+
+function enableCardTaps() {
+  document.querySelectorAll('.card-container').forEach(el => {
+    const idx = parseInt(el.dataset.index);
+    if (!G.luck.flipped[idx]) {
+      el.classList.remove('disabled');
+      el.onclick = (e) => { e.preventDefault(); flipCard(idx); };
+      el.ontouchend = (e) => { e.preventDefault(); flipCard(idx); };
+    }
+  });
+}
+
+function disableAllCards() {
+  document.querySelectorAll('.card-container').forEach(el => {
+    el.classList.add('disabled');
+    el.onclick = null;
+    el.ontouchend = null;
+  });
+}
+
+function flipCard(idx) {
+  if (isAnimating || G.luck.busted || G.luck.flipped[idx]) return;
+  isAnimating = true;
+
+  const inner = document.getElementById('card-inner-' + idx);
+  if (!inner) { isAnimating = false; return; }
+
+  SFX.flip();
+  inner.classList.add('flipped');
+  G.luck.flipped[idx] = true;
+  disableAllCards();
+
+  setTimeout(() => {
+    const type = G.luck.results[idx];
+    if (type === CARD.BURNT) {
+      handleBust();
+    } else {
+      playCardSound(type);
+      updateFlipSummary();
+      const flippedGood = countFlippedType(CARD.READY) + countFlippedType(CARD.DUMP);
+      if (flippedGood > 0 || countFlippedType(CARD.COOKING) > 0) {
+        showBtn('btn-stop', t('stop'));
+      }
+
+      const unflipped = G.luck.flipped.filter(f => !f).length;
+      if (unflipped === 0) {
+        // All cards flipped, auto-stop
+        isAnimating = false;
+        stopFlipping();
+        return;
+      }
+
+      setNarrator(t('flipMore'), '');
+      isAnimating = false;
+      if (!currentPlayer().isAI) enableCardTaps();
+    }
+  }, 550);
+}
+
+function playCardSound(type) {
+  if (type === CARD.COOKING) SFX.cooking();
+  else if (type === CARD.READY) SFX.ready();
+  else if (type === CARD.DUMP) SFX.dump();
+}
+
+function countFlippedType(type) {
+  let count = 0;
+  for (let i = 0; i < G.luck.results.length; i++) {
+    if (G.luck.flipped[i] && G.luck.results[i] === type) count++;
+  }
+  return count;
+}
+
+function updateFlipSummary() {
+  const summary = document.getElementById('flip-summary');
+  const ready = countFlippedType(CARD.READY);
+  const dump = countFlippedType(CARD.DUMP);
+  const cooking = countFlippedType(CARD.COOKING);
+  let html = '';
+  if (ready > 0) html += `<span class="flip-badge badge-ready">✅ ${ready}</span>`;
+  if (dump > 0) html += `<span class="flip-badge badge-dump">💜 ${dump}</span>`;
+  if (cooking > 0) html += `<span class="flip-badge badge-cooking">🎫 ${cooking}</span>`;
+  summary.innerHTML = html;
+}
+
+// ==================== BUST ====================
+function handleBust() {
+  G.luck.busted = true;
+  G.stats.totalBusted++;
+  SFX.burnt();
+  disableAllCards();
+  hideBtn('btn-stop');
+
+  // Show bust overlay
+  const kitchen = document.getElementById('kitchen-area');
+  const overlay = document.createElement('div');
+  overlay.className = 'bust-overlay';
+  overlay.innerHTML = `<div class="bust-text">${t('burnt')}</div>`;
+  kitchen.appendChild(overlay);
+
+  // Shake all flipped cards
+  document.querySelectorAll('.card-inner.flipped').forEach(el => {
+    el.parentElement.classList.add('card-shake');
+  });
+
+  setNarrator(t('burnt'), 'status-burnt');
+
+  setTimeout(() => {
+    overlay.remove();
+    showBtn('btn-continue', t('nextBtn'));
+    document.getElementById('flip-summary').innerHTML = '';
+    isAnimating = false;
+  }, 1800);
+}
+
+// ==================== STOP FLIPPING ====================
+function stopFlipping() {
+  if (G.luck.busted) return;
+  disableAllCards();
+  hideBtn('btn-stop');
+  isAnimating = true;
+  SFX.stop();
+
+  const p = currentPlayer();
+  const np = nextPlayer();
+  const readyCount = countFlippedType(CARD.READY);
+  const dumpCount = countFlippedType(CARD.DUMP);
+  const cookingCount = countFlippedType(CARD.COOKING);
+
+  // Animate resolution
+  let delay = 0;
+
+  // Ready cards fly up
+  if (readyCount > 0) {
+    setTimeout(() => {
+      for (let i = 0; i < G.luck.results.length; i++) {
+        if (G.luck.flipped[i] && G.luck.results[i] === CARD.READY) {
+          const card = document.querySelector(`.card-container[data-index="${i}"]`);
+          if (card) card.classList.add('card-fly-up');
+        }
+      }
+      p.orders -= readyCount;
+      G.stats.totalServed += readyCount;
+
+      // Animate current player count
+      const spotCount = document.getElementById('spot-count-current');
+      if (spotCount) {
+        spotCount.innerHTML = `${p.orders} <small>${t('orders')}</small>`;
+        spotCount.classList.add('count-shrink');
+        setTimeout(() => spotCount.classList.remove('count-shrink'), 400);
+      }
+      const spotEl = document.getElementById('spot-current');
+      if (spotEl) { spotEl.classList.add('blink-green'); setTimeout(() => spotEl.classList.remove('blink-green'), 400); }
+
+      // Float number
+      floatNumber(document.getElementById('spot-current'), `-${readyCount}`, 'var(--green)');
+
+      setNarrator(t('served', { n: readyCount }), 'status-ready');
+      SFX.ready();
+    }, delay);
+    delay += 900;
+  }
+
+  // Dump cards fly right
+  if (dumpCount > 0) {
+    setTimeout(() => {
+      for (let i = 0; i < G.luck.results.length; i++) {
+        if (G.luck.flipped[i] && G.luck.results[i] === CARD.DUMP) {
+          const card = document.querySelector(`.card-container[data-index="${i}"]`);
+          if (card) card.classList.add('card-fly-right');
+        }
+      }
+      np.orders += dumpCount;
+      G.stats.totalDumped += dumpCount;
+
+      const spotCountNext = document.getElementById('spot-count-next');
+      if (spotCountNext) {
+        spotCountNext.innerHTML = `${np.orders} <small>${t('orders')}</small>`;
+        spotCountNext.classList.add('count-punch');
+        setTimeout(() => spotCountNext.classList.remove('count-punch'), 400);
+      }
+      const spotNextEl = document.getElementById('spot-next');
+      if (spotNextEl) { spotNextEl.classList.add('blink-purple'); setTimeout(() => spotNextEl.classList.remove('blink-purple'), 400); }
+
+      floatNumber(document.getElementById('spot-next'), `+${dumpCount}`, 'var(--purple)');
+
+      setNarrator(t('dumped', { n: dumpCount, next: np.name }), 'status-dump');
+      SFX.dump();
+    }, delay);
+    delay += 900;
+  }
+
+  // Cooking cards settle
+  if (cookingCount > 0) {
+    setTimeout(() => {
+      for (let i = 0; i < G.luck.results.length; i++) {
+        if (G.luck.flipped[i] && G.luck.results[i] === CARD.COOKING) {
+          const card = document.querySelector(`.card-container[data-index="${i}"]`);
+          if (card) card.classList.add('card-fly-back');
+        }
+      }
+      if (readyCount === 0 && dumpCount === 0) {
+        setNarrator(t('stillCooking', { n: cookingCount }), 'status-cooking');
+      }
+    }, delay);
+    delay += 600;
+  }
+
+  // Final: show summary and continue
+  setTimeout(() => {
+    const msgs = [];
+    if (readyCount > 0) msgs.push(t('resolveReady', { n: readyCount }));
+    if (dumpCount > 0) msgs.push(t('resolveDump', { n: dumpCount, next: np.name }));
+    if (cookingCount > 0) msgs.push(t('resolveCooking', { n: cookingCount }));
+    if (msgs.length > 1) setNarrator(msgs.join(' · '), '');
+
+    renderScoreboard();
+    document.getElementById('flip-summary').innerHTML = '';
+
+    // Check for victory
+    if (p.orders <= 0) {
+      setTimeout(() => showVictory(p), 600);
+      return;
+    }
+
+    showBtn('btn-continue', t('nextBtn'));
+    isAnimating = false;
+  }, delay + 400);
+}
+
+function floatNumber(parent, text, color) {
+  if (!parent) return;
+  const el = document.createElement('div');
+  el.className = 'station-float';
+  el.style.color = color;
+  el.textContent = text;
+  el.style.left = '50%';
+  el.style.top = '30%';
+  el.style.transform = 'translateX(-50%)';
+  parent.appendChild(el);
+  setTimeout(() => el.remove(), 1500);
+}
+
+// ==================== NEXT TURN ====================
+function nextTurn() {
+  // Find next player with orders > 0
+  let attempts = 0;
+  do {
+    G.currentIndex = (G.currentIndex + 1) % G.players.length;
+    attempts++;
+  } while (G.players[G.currentIndex].orders <= 0 && attempts < G.players.length);
+
+  if (attempts >= G.players.length) {
+    // Everyone has orders, shouldn't happen — just proceed
+    G.currentIndex = (G.currentIndex) % G.players.length;
+  }
+
+  // Check if someone already won
+  const winner = G.players.find(p => p.orders <= 0);
+  if (winner) {
+    showVictory(winner);
+    return;
+  }
+
+  startTurn();
+}
+
+// ==================== AI ====================
+function aiTurn() {
+  if (G.phase !== 'game' || G.luck.busted) return;
+  const p = currentPlayer();
+  if (!p.isAI) return;
+
+  setNarrator(t('aiThinking', { name: p.name }), '');
+
+  const unflippedIndices = [];
+  for (let i = 0; i < G.luck.flipped.length; i++) {
+    if (!G.luck.flipped[i]) unflippedIndices.push(i);
+  }
+
+  if (unflippedIndices.length === 0) return;
+
+  // Decide whether to flip or stop
+  const goodFlips = countFlippedType(CARD.READY) + countFlippedType(CARD.DUMP);
+  const cookingFlips = countFlippedType(CARD.COOKING);
+  const totalFlips = goodFlips + cookingFlips;
+
+  let shouldStop = false;
+
+  if (totalFlips > 0) {
+    // Calculate aggression based on position
+    const avgOrders = G.players.reduce((s, pl) => s + pl.orders, 0) / G.players.length;
+    const isBehind = p.orders > avgOrders;
+
+    if (goodFlips >= 2 && !isBehind) shouldStop = true;
+    if (goodFlips >= 3) shouldStop = true;
+    if (cookingFlips >= 2 && goodFlips === 0) shouldStop = true;
+    if (totalFlips >= 3 && goodFlips >= 1 && !isBehind) shouldStop = true;
+
+    // Random aggression: if behind, sometimes push further
+    if (isBehind && goodFlips < 3 && Math.random() < 0.4) shouldStop = false;
+  }
+
+  if (shouldStop && totalFlips > 0) {
+    setTimeout(() => {
+      setNarrator(t('aiStops', { name: p.name }), '');
+      setTimeout(() => stopFlipping(), 500);
+    }, 600);
+  } else {
+    // Pick a random unflipped card
+    const pick = unflippedIndices[Math.floor(Math.random() * unflippedIndices.length)];
+    setTimeout(() => {
+      flipCard(pick);
+      // After flip resolves, continue AI logic
+      setTimeout(() => {
+        if (!G.luck.busted && G.phase === 'game' && currentPlayer().isAI) {
+          aiTurn();
+        }
+      }, 700);
+    }, 800 + Math.random() * 400);
+  }
+}
+
+// ==================== VICTORY ====================
+function showVictory(winner) {
+  G.phase = 'victory';
+  showScreen('victory');
+  SFX.win();
+
+  document.getElementById('victory-title').textContent = t('victoryTitle');
+  document.getElementById('winner-display').innerHTML = t('victoryWinner', { avatar: winner.avatar, name: winner.name });
+  document.getElementById('winner-display').style.borderColor = winner.color;
+  document.getElementById('victory-subtitle').textContent = t('victorySubtitle');
+
+  const stats = document.getElementById('victory-stats');
+  stats.innerHTML = `
+    <div class="stat-card"><div class="stat-val" style="color:var(--teal)">${G.stats.turns}</div><div class="stat-label">${t('statTurns')}</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:var(--green)">${G.stats.totalServed}</div><div class="stat-label">${t('statServed')}</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:var(--purple)">${G.stats.totalDumped}</div><div class="stat-label">${t('statDumped')}</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:var(--red)">${G.stats.totalBusted}</div><div class="stat-label">${t('statBusted')}</div></div>
+  `;
+
+  spawnConfetti();
+}
+
+function spawnConfetti() {
+  const container = document.getElementById('confetti-container');
+  container.innerHTML = '';
+  const colors = ['#ED8936','#F6E05E','#48BB78','#805AD5','#E53E3E','#38B2AC','#ED64A6'];
+  for (let i = 0; i < 80; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    piece.style.left = Math.random() * 100 + '%';
+    piece.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+    piece.style.animationDuration = (2 + Math.random() * 3) + 's';
+    piece.style.animationDelay = (Math.random() * 2) + 's';
+    piece.style.width = (6 + Math.random() * 8) + 'px';
+    piece.style.height = (6 + Math.random() * 8) + 'px';
+    piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+    container.appendChild(piece);
+  }
+}
+
+// ==================== UI HELPERS ====================
+function setNarrator(text, cls) {
+  const el = document.getElementById('narrator');
+  el.className = 'narrator' + (cls ? ' ' + cls : '');
+  el.innerHTML = text;
+}
+
+function showBtn(id, text) {
+  const btn = document.getElementById(id);
+  btn.classList.remove('hidden');
+  if (text) btn.textContent = text;
+}
+
+function hideBtn(id) {
+  document.getElementById(id).classList.add('hidden');
+}
+
+function confirmHome() {
+  if (confirm(t('confirmHome'))) showScreen('title');
+}
+
+function confirmRestart() {
+  if (confirm(t('confirmRestart'))) startGame();
+}
+
+// ==================== INIT ====================
+initTitleFloaters();
+renderTitleRules();
+renderSetup();
+</script>
+</body>
+</html>
