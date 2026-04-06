@@ -406,7 +406,7 @@ const AI_CHEFS = {
     { name: 'אייל בפיתה' }, { name: 'חומוס כהן' }, { name: 'אסף גרנולה' }
   ]
 };
-const STARTING_ORDERS = 6;
+const ORDERS_BY_COUNT = { 2: 6, 3: 5, 4: 4, 5: 3 };
 const FOOD_EMOJIS = ['🍕','🌮','🍔','🍩','🧁','🥐','🍣','🍗','🥞','🧀','🌶️','🍟','🥚','🍰','🫕'];
 
 // i18n
@@ -763,7 +763,7 @@ function startGame() {
       name: name,
       avatar: avatarEl.dataset.avatar || AVATARS[i],
       color: PLAYER_COLORS[i % PLAYER_COLORS.length],
-      orders: STARTING_ORDERS,
+      orders: ORDERS_BY_COUNT[selectedCount] || 5,
       isAI: aiCheck.checked,
       index: i
     });
@@ -839,19 +839,20 @@ function renderSpotlight() {
 
 // ==================== CARD GENERATION ====================
 function rollCards(count) {
-  // Heat-based probabilities (out of variable total):
-  // Swap weight = half of burnt weight (rounded up), min 0.5
+  // Probabilities: Cooking 4, Ready 3, Dump 2, Burnt heat-dependent, Swap half-burnt
   const burntWeight = selectedHeat === 'L' ? 1 : selectedHeat === 'H' ? 3 : 2;
   const swapWeight = burntWeight / 2;
-  const cookWeight = 6;
-  const total = cookWeight + 2 + 2 + burntWeight + swapWeight;
+  const cookWeight = 4;
+  const readyWeight = 3;
+  const dumpWeight = 2;
+  const total = cookWeight + readyWeight + dumpWeight + burntWeight + swapWeight;
   const results = [];
   for (let i = 0; i < count; i++) {
     const roll = Math.random() * total;
     if (roll < cookWeight) results.push(CARD.COOKING);
-    else if (roll < cookWeight + 2) results.push(CARD.READY);
-    else if (roll < cookWeight + 4) results.push(CARD.DUMP);
-    else if (roll < cookWeight + 4 + burntWeight) results.push(CARD.BURNT);
+    else if (roll < cookWeight + readyWeight) results.push(CARD.READY);
+    else if (roll < cookWeight + readyWeight + dumpWeight) results.push(CARD.DUMP);
+    else if (roll < cookWeight + readyWeight + dumpWeight + burntWeight) results.push(CARD.BURNT);
     else results.push(CARD.SWAP);
   }
   return results;
