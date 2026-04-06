@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>About — Chop Chop! 🔪</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔪</text></svg>">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Patrick+Hand&display=swap');
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Fredoka', sans-serif;
+  background: linear-gradient(135deg, #0e141b 0%, #1f2a38 50%, #0e141b 100%);
+  color: #EDF2F7; min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+  padding: 40px 20px;
+}
+.container { max-width: 680px; width: 100%; }
+.back-link { display: inline-flex; align-items: center; gap: 6px; color: #ED8936; text-decoration: none; font-weight: 600; margin-bottom: 24px; transition: opacity .2s; }
+.back-link:hover { opacity: 0.8; }
+h1 { font-size: clamp(2rem, 6vw, 3.2rem); font-weight: 700; margin-bottom: 8px; text-shadow: 0 4px 0 #cc4400, 0 8px 20px rgba(0,0,0,0.4); }
+.subtitle { color: #F6E05E; font-size: 1.2rem; margin-bottom: 32px; }
+.story-card {
+  background: rgba(255,255,255,0.06); backdrop-filter: blur(8px);
+  border: 1.5px solid rgba(255,255,255,0.1); border-radius: 16px;
+  padding: 28px 32px; margin-bottom: 20px;
+}
+.story-card h2 { font-size: 1.3rem; color: #ED8936; margin-bottom: 12px; }
+.story-card p { font-family: 'Patrick Hand', cursive; font-size: 1.1rem; line-height: 1.7; color: #CBD5E0; margin-bottom: 12px; }
+.story-card p:last-child { margin-bottom: 0; }
+.credits { font-size: 0.85rem; color: #718096; text-align: center; margin-top: 40px; }
+.credits a { color: #ED8936; text-decoration: none; }
+.emoji-divider { text-align: center; font-size: 1.5rem; margin: 20px 0; letter-spacing: 8px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <a href="chop-chop.html" class="back-link">← Back to Game</a>
+  <h1>🔪 Chop Chop! ⚡</h1>
+  <div class="subtitle">The Story Behind the Kitchen</div>
+
+  <div class="story-card">
+    <h2>🍳 How It Started</h2>
+    <p>It all began with a simple question: what if you could win a game by doing LESS work? The Lazy Chef was born — a push-your-luck card game where the goal was to dump your orders on everyone else.</p>
+    <p>But then my daughter played it and said: "He's not lazy — he's the FASTEST chef!" And she was right. Clearing your orders first means you're the best in the kitchen, not the laziest. So the game got a new name and a new attitude.</p>
+  </div>
+
+  <div class="emoji-divider">🍕 🌮 🍔 🍣 🍩</div>
+
+  <div class="story-card">
+    <h2>🎮 How to Play</h2>
+    <p>Each chef starts with a stack of order tickets. On your turn, flip cards one at a time from the kitchen deck:</p>
+    <p>🎫 <strong>Still Cooking</strong> — nothing happens, card goes back to your hand.</p>
+    <p>✅ <strong>Order Ready</strong> — order served! One less ticket for you!</p>
+    <p>💜 <strong>Not My Problem</strong> — dump an order on the next chef!</p>
+    <p>🔥 <strong>Burnt!</strong> — disaster! Your entire turn is cancelled.</p>
+    <p>🔀 <strong>Station Swap!</strong> — everyone switches stations! Total chaos!</p>
+    <p>The trick: you can stop flipping anytime to keep your gains. But push your luck too far and you might hit Burnt... 🔥</p>
+  </div>
+
+  <div class="story-card">
+    <h2>⚡ The Name</h2>
+    <p>"Chop Chop!" — because in a real kitchen, speed is everything. The head chef yells "chop chop!" when orders are backing up. First to clear your station wins. No room for slowpokes.</p>
+  </div>
+
+  <div class="credits">
+    Made with ❤️ and way too many burnt orders.<br>
+    <a href="https://github.com/nakashon/games">View on GitHub</a>
+  </div>
+</div>
+</body>
+</html>
