@@ -771,36 +771,52 @@ html, body {
 
 
 /* ── Portrait rotation prompt (mobile only) ── */
+/* ── Portrait toast — soft recommendation, not a blocker ── */
 #portrait-warn {
   display: none;
-  position: fixed; inset: 0; z-index: 9999;
-  background: #090d12;
-  flex-direction: column;
-  align-items: center; justify-content: center;
-  gap: 18px; text-align: center; padding: 40px;
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(0);
+  z-index: 9999;
+  background: rgba(10,5,2,0.93);
+  border: 1.5px solid rgba(212,169,106,0.5);
+  border-radius: 16px;
+  padding: 10px 16px 10px 14px;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+  animation: toastUp 0.35s ease;
 }
-/* Show ONLY on touch devices in portrait */
-@media (pointer: coarse) and (orientation: portrait) {
-  #portrait-warn { display: flex !important; }
+#portrait-warn.visible { display: flex; }
+@keyframes toastUp {
+  from { transform: translateX(-50%) translateY(16px); opacity: 0; }
+  to   { transform: translateX(-50%) translateY(0);   opacity: 1; }
 }
 .portrait-rotate-icon {
-  font-size: 4.5rem;
-  animation: pkRotateHint 1.4s ease-in-out infinite alternate;
-  transform-origin: center;
+  font-size: 1.6rem; flex-shrink: 0;
+  animation: pkRotateHint 1.5s ease-in-out infinite alternate;
 }
 @keyframes pkRotateHint {
-  from { transform: rotate(-10deg); }
-  to   { transform: rotate(80deg); }
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(75deg); }
 }
-.portrait-text-en {
-  font-family: 'Nunito', sans-serif; font-size: 1.15rem; font-weight: 700;
-  color: rgba(212,169,106,0.9); max-width: 280px; line-height: 1.5;
+.portrait-toast-text {
+  font-family: 'Nunito', sans-serif; font-size: 0.88rem; font-weight: 700;
+  color: rgba(212,169,106,0.92); line-height: 1.4; flex: 1;
 }
-.portrait-text-he {
-  font-family: 'Nunito', sans-serif; font-size: 1.1rem; font-weight: 700;
-  color: rgba(255,255,255,0.5); max-width: 280px; line-height: 1.5;
-  direction: rtl;
+#portrait-dismiss {
+  background: none; border: none; cursor: pointer;
+  color: rgba(212,169,106,0.55); font-size: 1.1rem; padding: 2px 4px;
+  line-height: 1; flex-shrink: 0; transition: color .15s;
+  font-family: sans-serif;
 }
+#portrait-dismiss:hover { color: #D4A96A; }
 
 
 /* ── Landscape mobile compact layout (short viewport) ── */
@@ -866,9 +882,9 @@ html, body {
 </head>
 <body>
 <div id="portrait-warn">
-  <div class="portrait-rotate-icon">📱</div>
-  <p class="portrait-text-en">Rotate your device to landscape for the full experience!</p>
-  <p class="portrait-text-he">סובב את המכשיר לאופקי לחוויה מלאה!</p>
+  <span class="portrait-rotate-icon">📱</span>
+  <span class="portrait-toast-text">Best in landscape — try rotating!</span>
+  <button id="portrait-dismiss" aria-label="dismiss">✕</button>
 </div>
 <a href="index.html" class="hub-back">🎮 All Games</a>
 <div class="lang-toggle"><button class="lang-btn" id="lang-en" onclick="setLang('en')">EN</button><button class="lang-btn active" id="lang-he" onclick="setLang('he')">עב</button></div>
@@ -1905,10 +1921,36 @@ document.getElementById('btn-mem-back').addEventListener('click', () => {
   document.addEventListener('DOMContentLoaded', scaleGameWrap);
   scaleGameWrap();
 
-  // Request landscape lock (Android Chrome + some others; silently ignored elsewhere)
-  if (screen.orientation && screen.orientation.lock) {
-    screen.orientation.lock('landscape').catch(() => {});
-  }
+  // Portrait soft toast — show as a hint, not a blocker
+  (function() {
+    let _dismissed = false;
+    let _hideTimer  = null;
+    function checkOrientation() {
+      if (_dismissed) return;
+      const isTouch = window.matchMedia('(pointer: coarse)').matches;
+      if (!isTouch) return;
+      const warn = document.getElementById('portrait-warn');
+      if (!warn) return;
+      const isPortrait = window.innerHeight > window.innerWidth;
+      if (isPortrait) {
+        warn.classList.add('visible');
+        clearTimeout(_hideTimer);
+        _hideTimer = setTimeout(() => warn.classList.remove('visible'), 5000);
+      } else {
+        warn.classList.remove('visible');
+      }
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+      const btn = document.getElementById('portrait-dismiss');
+      if (btn) btn.addEventListener('click', () => {
+        _dismissed = true;
+        document.getElementById('portrait-warn').classList.remove('visible');
+      });
+      checkOrientation();
+    });
+    window.addEventListener('resize', checkOrientation);
+    window.addEventListener('orientationchange', () => setTimeout(checkOrientation, 300));
+  })();
 })();
 
 // ── MOBILE BUTTONS — show on touch devices, wire to lane switch ──
