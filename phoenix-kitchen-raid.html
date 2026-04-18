@@ -751,10 +751,67 @@ html, body {
   transition: background .2s, color .2s, border-color .2s;
 }
 .hub-back:hover { background: rgba(212,169,106,0.18); border-color: rgba(212,169,106,0.6); color: #D4A96A; }
+
+/* ── Language toggle ── */
+.lang-toggle {
+  position: absolute; top: 12px; left: 52px; z-index: 200;
+  display: flex; gap: 4px;
+  background: rgba(5,2,1,0.65); border-radius: 20px; padding: 4px;
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+}
+.lang-btn {
+  padding: 5px 13px; border-radius: 16px; border: none;
+  font-size: 0.82rem; font-weight: 700; cursor: pointer;
+  transition: all .2s; background: transparent;
+  color: rgba(212,169,106,0.55); font-family: 'Nunito', sans-serif;
+  touch-action: manipulation;
+}
+.lang-btn.active { background: rgba(212,169,106,0.9); color: #1a0a00; }
+.lang-btn:hover:not(.active) { background: rgba(212,169,106,0.15); color: #D4A96A; }
+
+
+/* ── Portrait rotation prompt (mobile only) ── */
+#portrait-warn {
+  display: none;
+  position: fixed; inset: 0; z-index: 9999;
+  background: #090d12;
+  flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 18px; text-align: center; padding: 40px;
+}
+/* Show ONLY on touch devices in portrait */
+@media (pointer: coarse) and (orientation: portrait) {
+  #portrait-warn { display: flex !important; }
+}
+.portrait-rotate-icon {
+  font-size: 4.5rem;
+  animation: pkRotateHint 1.4s ease-in-out infinite alternate;
+  transform-origin: center;
+}
+@keyframes pkRotateHint {
+  from { transform: rotate(-10deg); }
+  to   { transform: rotate(80deg); }
+}
+.portrait-text-en {
+  font-family: 'Nunito', sans-serif; font-size: 1.15rem; font-weight: 700;
+  color: rgba(212,169,106,0.9); max-width: 280px; line-height: 1.5;
+}
+.portrait-text-he {
+  font-family: 'Nunito', sans-serif; font-size: 1.1rem; font-weight: 700;
+  color: rgba(255,255,255,0.5); max-width: 280px; line-height: 1.5;
+  direction: rtl;
+}
+
 </style>
 </head>
 <body>
+<div id="portrait-warn">
+  <div class="portrait-rotate-icon">📱</div>
+  <p class="portrait-text-en">Rotate your device to landscape for the full experience!</p>
+  <p class="portrait-text-he">סובב את המכשיר לאופקי לחוויה מלאה!</p>
+</div>
 <a href="index.html" class="hub-back">🎮 All Games</a>
+<div class="lang-toggle"><button class="lang-btn" id="lang-en" onclick="setLang('en')">EN</button><button class="lang-btn active" id="lang-he" onclick="setLang('he')">עב</button></div>
 
 
 <!-- ── GAME WRAP (scales as unit on mobile) ── -->
@@ -856,32 +913,7 @@ html, body {
   </div>
   <div class="mem-body">
     <div class="mem-photo-grid" id="mem-photo-grid"></div>
-    <div class="mem-stories">
-      <div class="mem-story-card">
-        <h3>🎂 הגאלט דה רווא</h3>
-        <p>פניקס אכלה עוגת מלוכה שלמה. שעות של דאגה — שמא בלעה גם את הפיגורינה הנסתרת בפנים. היא לא. את כל השאר — כן.</p>
-      </div>
-      <div class="mem-story-card">
-        <h3>🍕 מסיבות הפיצה</h3>
-        <p>כשהיינו עושים פיצות בתנור הפיצה בחצר, פניקס הייתה עושה סיבובים בין האורחים כמו מלצרית שמחפשת טיפ. ילדים רצו בבית עם הפרוסות מעל לראש, היא רצה אחריהם. אף פרוסה לא הייתה בטוחה.</p>
-      </div>
-      <div class="mem-story-card">
-        <h3>🎒 תיקי בית הספר</h3>
-        <p>שכחת להוציא את הסנדוויץ׳ מהתיק? פניקס לא שכחה. הריח שלה היה עדיף על כל GPS. הרוכסן לא היה אף פעם מכשול רציני.</p>
-      </div>
-      <div class="mem-story-card">
-        <h3>🗑️ פח האשפה</h3>
-        <p>לפניקס הייתה שיטה. היא לא תקפה — היא חיכתה. חקרה. מצאה את הזווית המדויקת. ואז, ברגע הנכון, פשוט הפכה אותו. בשקט. בכיף. בלי להתנצל.</p>
-      </div>
-      <div class="mem-story-card">
-        <h3>🍞 חמש פיתות</h3>
-        <p>פעם אחת נכנסנו הביתה ומצאנו חמש פיתות נעלמות. לא פירורים — נעלמות. עד היום לא ברור איך. אנחנו חושדים שהיה לה שותף.</p>
-      </div>
-      <div class="mem-story-card">
-        <h3>🦴 הצלחת</h3>
-        <p>כשהייתה רעבה, פניקס לא נבחה — היא דחפה את הצלחת ברצפה עד שהיא הרעישה. זה לא היה בקשה. זה היה הצהרה.</p>
-      </div>
-    </div>
+    <div class="mem-stories" id="mem-stories-dynamic"></div>
     <p class="mem-closing">13 שנים של כאוס, חום, ואהבה אמיתית. היית חלק מכל ארוחה, כל שמחה, כל רגע בבית. מתגעגעים אליך מאוד, פניקס. 🐾</p>
     <button id="btn-mem-back" class="btn-primary">← חזרה למשחק</button>
   </div>
@@ -1789,19 +1821,26 @@ document.getElementById('btn-mem-back').addEventListener('click', () => {
   showScreen('screen-menu');
 });
 
-// ── MOBILE SCALE — keeps game-wrap fitted to viewport ──
+// ── MOBILE SCALE — fills landscape screen on touch, capped at 1× on desktop ──
 (function() {
   const GAME_W = 900, GAME_H = 540;
   function scaleGameWrap() {
     const gw = document.getElementById('game-wrap');
     if (!gw) return;
-    const s = Math.min(window.innerWidth / GAME_W, window.innerHeight / GAME_H, 1);
+    const touch = window.matchMedia('(pointer: coarse)').matches;
+    const maxS  = touch ? 2.5 : 1; // allow upscale on mobile to fill screen
+    const s     = Math.min(window.innerWidth / GAME_W, window.innerHeight / GAME_H, maxS);
     gw.style.transform = `translate(-50%, -50%) scale(${s})`;
   }
   window.addEventListener('resize', scaleGameWrap);
-  window.addEventListener('orientationchange', () => setTimeout(scaleGameWrap, 200));
+  window.addEventListener('orientationchange', () => setTimeout(scaleGameWrap, 300));
   document.addEventListener('DOMContentLoaded', scaleGameWrap);
   scaleGameWrap();
+
+  // Request landscape lock (Android Chrome + some others; silently ignored elsewhere)
+  if (screen.orientation && screen.orientation.lock) {
+    screen.orientation.lock('landscape').catch(() => {});
+  }
 })();
 
 // ── MOBILE BUTTONS — show on touch devices, wire to lane switch ──
@@ -1840,6 +1879,229 @@ document.getElementById('btn-mute').addEventListener('click', () => {
     btn.classList.toggle('muted', a.muted);
   }
 });
+
+
+// ═══════════════════════════════════════════════════════════════
+// INTERNATIONALISATION
+// ═══════════════════════════════════════════════════════════════
+let _pkLang = 'he';
+window._pkLang = _pkLang;
+
+const STRINGS = {
+  he: {
+    pageTitle:   'פיניקס מציגה: פשיטה על המטבח 🐾',
+    loading:     'מחפשת אוכל\u2026',
+    menuPresents:'פיניקס מציגה:',
+    menuTitle:   'פשיטה על המטבח',
+    menuTagline: 'מחווה לגנבת האוכל הגדולה בעולם 🐾',
+    menuHint:    '↑↓ להחליף נתיב\u00a0•\u00a0לאסוף אוכל\u00a0•\u00a0להתחמק ממכשולים\u00a0•\u00a010 ברצף → ✨ מצב אלוהי',
+    btnPlay:     '🐾 שחק עכשיו',
+    btnMemorial: '♥ על פניקס',
+    hudScore:    'ניקוד',
+    hudCombo:    'קומבו',
+    hudBfReady:  '🐾 10 ברצף → מצב אלוהי',
+    hudBfSoon:   n => `🔥 ${n}/10 ברצף — מצב אלוהי בקרוב!`,
+    hudBfActive: t => `✨ מצב אלוהי ${t}ש`,
+    goTitle:     'נתפסת!',
+    goScoreLabel:'ניקוד',
+    goBest:      'שיא:',
+    btnRetry:    '🐾 נסי שוב',
+    btnMenu:     'תפריט ←',
+    memSubtitle: 'לזכרה של',
+    memName:     'פניקס',
+    memTagline:  'הביגל הכי חמוד, הכי גנדרן, והכי רעבתן שהיה',
+    memClosing:  '13 שנים של כאוס, חום, ואהבה אמיתית. היית חלק מכל ארוחה, כל שמחה, כל רגע בבית. מתגעגעים אליך מאוד, פניקס. 🐾',
+    btnMemBack:  '← חזרה למשחק',
+    tutTitle:    '🐾 פשיטה על המטבח של פניקס',
+    tutEat:      '✅ תאכלי את אלה',
+    tutDodge:    '❌ תתחמקי מאלה',
+    tutPower:    '✨ אכלי <b>10 מזונות ברצף</b> ללא החמצה → <b>מצב אלוהי</b> מופעל אוטומטית!',
+    tutHint:     '↑ ↓ להחליף נתיב\u00a0·\u00a0החמצת אוכל שוברת את הקומבו!',
+    zoneLow:     '▼ נמוך',
+    zoneMid:     '● אמצע',
+    zoneHigh:    '▲ גבוה',
+    godModeText: '✨ מצב אלוהי! ✨',
+    missText:    'החמצה!',
+    stories: [
+      { title:'🎂 הגאלט דה רווא', body:'פניקס אכלה עוגת מלוכה שלמה. שעות של דאגה — שמא בלעה גם את הפיגורינה הנסתרת בפנים. היא לא. את כל השאר — כן.' },
+      { title:'🍕 מסיבות הפיצה', body:'כשהיינו עושים פיצות בתנור הפיצה בחצר, פניקס הייתה עושה סיבובים בין האורחים כמו מלצרית שמחפשת טיפ. ילדים רצו בבית עם הפרוסות מעל לראש, היא רצה אחריהם. אף פרוסה לא הייתה בטוחה.' },
+      { title:'🎒 תיקי בית הספר', body:'שכחת להוציא את הסנדוויץ׳ מהתיק? פניקס לא שכחה. הריח שלה היה עדיף על כל GPS. הרוכסן לא היה אף פעם מכשול רציני.' },
+      { title:'🗑️ פח האשפה', body:'לפניקס הייתה שיטה. היא לא תקפה — היא חיכתה. חקרה. מצאה את הזווית המדויקת. ואז, ברגע הנכון, פשוט הפכה אותו. בשקט. בכיף. בלי להתנצל.' },
+      { title:'🍞 חמש פיתות', body:'פעם אחת נכנסנו הביתה ומצאנו חמש פיתות נעלמות. לא פירורים — נעלמות. עד היום לא ברור איך. אנחנו חושדים שהיה לה שותף.' },
+      { title:'🦴 הצלחת', body:'כשהייתה רעבה, פניקס לא נבחה — היא דחפה את הצלחת ברצפה עד שהיא הרעישה. זה לא היה בקשה. זה היה הצהרה.' },
+    ],
+    memPhotoCaptions: [
+      'עיניים על השולחן. תמיד. גם כשישנה.',
+      'עם הילדים — אחרי שאכלה את הפיצה שלהם.',
+      'מנוחה מכובדת אחרי יום עמוס של פשיטות.',
+      'הסיור היומי — בעיקר סביב פחי האשפה.',
+      'כשאין אוכל בנמצא, גם צעצוע יכול להתגלגל.',
+      'הפרצוף שמנטרל כל כעס תוך שלוש שניות.',
+    ],
+    goStories: [
+      { photo:'ph_table',  caption:'פעם אחת הציצה מעל השולחן — ואז הפיצה נעלמה.' },
+      { photo:'ph_kid',    caption:'הילדים רצו עם הפיצה מעל לראשם. פניקס לא ויתרה.' },
+      { photo:'ph_nap',    caption:'אכלה גאלט דה רווא שלם. חששנו שבלעה גם את הכתר.' },
+      { photo:'ph_selfie', caption:'13 שנים של שמחה, כאוס ואהבה. מתגעגעים אליך, פניקס. 🐾' },
+    ],
+  },
+  en: {
+    pageTitle:   "Phoenix's Kitchen Raid 🐾",
+    loading:     'Sniffing for snacks\u2026',
+    menuPresents:'Phoenix Presents:',
+    menuTitle:   'Kitchen Raid',
+    menuTagline: "A tribute to the world's greatest food thief 🐾",
+    menuHint:    '↑↓ to switch lanes\u00a0•\u00a0collect food\u00a0•\u00a0dodge obstacles\u00a0•\u00a010 in a row → ✨ God Mode',
+    btnPlay:     '🐾 Play Now',
+    btnMemorial: '♥ About Phoenix',
+    hudScore:    'Score',
+    hudCombo:    'Combo',
+    hudBfReady:  '🐾 10 in a row → God Mode',
+    hudBfSoon:   n => `🔥 ${n}/10 streak — God Mode coming!`,
+    hudBfActive: t => `✨ God Mode ${t}s`,
+    goTitle:     'Caught!',
+    goScoreLabel:'Score',
+    goBest:      'Best:',
+    btnRetry:    '🐾 Try Again',
+    btnMenu:     '← Menu',
+    memSubtitle: 'In memory of',
+    memName:     'Phoenix',
+    memTagline:  'The sweetest, cheekiest, hungriest beagle that ever was',
+    memClosing:  '13 years of chaos, warmth, and real love. You were part of every meal, every joy, every moment at home. We miss you so much, Phoenix. 🐾',
+    btnMemBack:  '← Back to Game',
+    tutTitle:    "🐾 Phoenix's Kitchen Raid",
+    tutEat:      '✅ Eat these',
+    tutDodge:    '❌ Dodge these',
+    tutPower:    '✨ Eat <b>10 foods in a row</b> without missing → <b>God Mode</b> activates automatically!',
+    tutHint:     '↑ ↓ to switch lane\u00a0·\u00a0Missing food breaks your combo!',
+    zoneLow:     '▼ Low',
+    zoneMid:     '● Mid',
+    zoneHigh:    '▲ High',
+    godModeText: '✨ God Mode! ✨',
+    missText:    'Miss!',
+    stories: [
+      { title:'🎂 The King Cake', body:"Phoenix ate an entire Galette des Rois. Hours of anxiety — had she swallowed the hidden figurine? She hadn't. Everything else — yes." },
+      { title:'🍕 Pizza Parties', body:"When we made pizzas in the outdoor pizza oven, Phoenix would do rounds between guests like a waitress hunting for a tip. Kids ran through the house holding slices above their heads. She ran after them. No slice was safe." },
+      { title:'🎒 School Bags', body:"Forgot to take out your sandwich? Phoenix didn't forget. Her nose beat any GPS. A zipper was never a serious obstacle." },
+      { title:'🗑️ The Bin', body:"Phoenix had a method. She didn't attack — she waited. Investigated. Found the exact angle. Then, at precisely the right moment, knocked it over. Quietly. Happily. Without apology." },
+      { title:'🍞 Five Pittas', body:"We once came home to find five pitas gone. Not crumbs — gone. To this day we don't know how. We suspect she had an accomplice." },
+      { title:'🦴 The Bowl', body:"When she was hungry, Phoenix didn't bark — she pushed her bowl across the floor until it made noise. It wasn't a request. It was a statement." },
+    ],
+    memPhotoCaptions: [
+      'Eyes on the table. Always. Even when she was asleep.',
+      'With the kids — after she ate their pizza.',
+      'Well-earned rest after a busy day of raids.',
+      'The daily patrol — mostly around the bins.',
+      "When there's no food around, even a toy will do.",
+      'The face that defuses any anger within three seconds.',
+    ],
+    goStories: [
+      { photo:'ph_table',  caption:'Once she peeked over the table — then the pizza vanished.' },
+      { photo:'ph_kid',    caption:'The kids ran with slices above their heads. Phoenix never gave up.' },
+      { photo:'ph_nap',    caption:'She ate an entire Galette des Rois. We feared she swallowed the crown.' },
+      { photo:'ph_selfie', caption:'13 years of joy, chaos and love. We miss you, Phoenix. 🐾' },
+    ],
+  },
+};
+
+function t(key) { return STRINGS[_pkLang][key] ?? STRINGS.he[key] ?? key; }
+
+function setLang(lang) {
+  _pkLang = lang;
+  window._pkLang = lang;
+  document.getElementById('lang-en').classList.toggle('active', lang === 'en');
+  document.getElementById('lang-he').classList.toggle('active', lang === 'he');
+  document.documentElement.dir  = lang === 'he' ? 'rtl' : 'ltr';
+  document.documentElement.lang = lang;
+  updateAllText();
+  localStorage.setItem('pk_lang', lang);
+}
+
+function updateAllText() {
+  const S = STRINGS[_pkLang];
+  document.title = S.pageTitle;
+  // Loading
+  const loadTxt = document.querySelector('.loading-text');
+  if (loadTxt) loadTxt.textContent = S.loading;
+  // Menu
+  const menuPresents = document.querySelector('.menu-subtitle-top');
+  if (menuPresents) menuPresents.textContent = S.menuPresents;
+  const menuTitle = document.querySelector('.menu-title');
+  if (menuTitle) menuTitle.textContent = S.menuTitle;
+  const menuTagline = document.querySelector('.menu-tagline');
+  if (menuTagline) menuTagline.textContent = S.menuTagline;
+  const menuHint = document.querySelector('.menu-controls-hint');
+  if (menuHint) menuHint.innerHTML = S.menuHint;
+  const btnPlay = document.getElementById('btn-play');
+  if (btnPlay) btnPlay.textContent = S.btnPlay;
+  const btnMem = document.getElementById('btn-memorial');
+  if (btnMem) btnMem.textContent = S.btnMemorial;
+  // HUD
+  const hudScoreLbl = document.querySelector('.hud-score-label');
+  if (hudScoreLbl) hudScoreLbl.textContent = S.hudScore;
+  const hudComboLbl = document.querySelector('.combo-label');
+  if (hudComboLbl) hudComboLbl.textContent = S.hudCombo;
+  const hudBf = document.getElementById('hud-bf');
+  if (hudBf && !hudBf.classList.contains('active')) hudBf.textContent = S.hudBfReady;
+  // Game over
+  const goTitle = document.querySelector('.go-title');
+  if (goTitle) goTitle.textContent = S.goTitle;
+  const goScoreLbl = document.querySelector('.go-score-label');
+  if (goScoreLbl) goScoreLbl.textContent = S.goScoreLabel;
+  const goBest = document.querySelector('.go-best');
+  if (goBest) {
+    const bestVal = document.getElementById('go-best-val');
+    goBest.childNodes[0].textContent = S.goBest + ' ';
+    if (bestVal) goBest.appendChild(bestVal);
+  }
+  const btnRetry = document.getElementById('btn-retry');
+  if (btnRetry) btnRetry.textContent = S.btnRetry;
+  const btnGoMenu = document.getElementById('btn-gomenu');
+  if (btnGoMenu) btnGoMenu.textContent = S.btnMenu;
+  // Memorial
+  const memSub = document.querySelector('.mem-subtitle');
+  if (memSub) memSub.textContent = S.memSubtitle;
+  const memName = document.querySelector('.mem-title');
+  if (memName) memName.textContent = S.memName;
+  const memTag = document.querySelector('.mem-tagline');
+  if (memTag) memTag.textContent = S.memTagline;
+  const memClose = document.querySelector('.mem-closing');
+  if (memClose) memClose.textContent = S.memClosing;
+  const btnMemBack = document.getElementById('btn-mem-back');
+  if (btnMemBack) btnMemBack.textContent = S.btnMemBack;
+  // Memorial stories (dynamic)
+  const storiesEl = document.getElementById('mem-stories-dynamic');
+  if (storiesEl) {
+    storiesEl.innerHTML = S.stories.map(s =>
+      `<div class="mem-story-card"><h3>${s.title}</h3><p>${s.body}</p></div>`
+    ).join('');
+  }
+  // Tutorial
+  const tutTitle = document.querySelector('.tut-title');
+  if (tutTitle) tutTitle.textContent = S.tutTitle;
+  const tutEatLbl = document.querySelector('.tut-col.eat .tut-col-label');
+  if (tutEatLbl) tutEatLbl.textContent = S.tutEat;
+  const tutDodgeLbl = document.querySelector('.tut-col.dodge .tut-col-label');
+  if (tutDodgeLbl) tutDodgeLbl.textContent = S.tutDodge;
+  const tutPower = document.querySelector('.tut-power');
+  if (tutPower) tutPower.innerHTML = S.tutPower;
+  const tutHint = document.querySelector('.tut-hint');
+  if (tutHint) tutHint.innerHTML = S.tutHint;
+}
+
+// Initialise language from localStorage or default 'he'
+(function() {
+  const saved = localStorage.getItem('pk_lang');
+  if (saved && (saved === 'en' || saved === 'he')) {
+    _pkLang = saved;
+    window._pkLang = saved;
+    document.documentElement.dir  = saved === 'he' ? 'rtl' : 'ltr';
+    document.documentElement.lang = saved;
+    document.getElementById('lang-en').classList.toggle('active', saved === 'en');
+    document.getElementById('lang-he').classList.toggle('active', saved === 'he');
+  }
+  document.addEventListener('DOMContentLoaded', updateAllText);
+})();
 
 // ═══════════════════════════════════════════════════════════════
 // INJECT PHOTO ASSETS INTO HTML ELEMENTS
