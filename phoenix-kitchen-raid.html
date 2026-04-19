@@ -704,14 +704,14 @@ html, body {
 
 /* ── MOBILE CONTROLS ── */
 #mobile-controls {
-  position: absolute;
-  right: 12px;
+  position: fixed;
+  right: 16px;
   top: 50%;
   transform: translateY(-50%);
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  z-index: 20;
+  gap: 16px;
+  z-index: 9999;
   pointer-events: auto;
 }
 #mobile-controls.hidden { display: none !important; }
@@ -719,9 +719,9 @@ html, body {
   background: rgba(20,10,5,0.72);
   border: 2px solid rgba(212,169,106,0.55);
   border-radius: 50%;
-  width: 62px;
-  height: 62px;
-  font-size: 24px;
+  width: 72px;
+  height: 72px;
+  font-size: 28px;
   cursor: pointer;
   color: #D4A96A;
   touch-action: manipulation;
@@ -929,12 +929,13 @@ html, body {
 <!-- Mute button -->
 <button id="btn-mute" title="השתק / הפעל">🔊</button>
 
-<!-- Mobile tap controls (hidden on desktop) -->
-<div id="mobile-controls" class="hidden">
-  <button id="btn-up"   class="mobile-btn mobile-btn-up"   aria-label="למעלה">▲</button>
-  <button id="btn-down" class="mobile-btn mobile-btn-down" aria-label="למטה">▼</button>
-</div>
 </div><!-- /game-wrap -->
+
+<!-- Mobile tap controls — outside game-wrap to avoid Phaser canvas event capture -->
+<div id="mobile-controls" class="hidden">
+  <button id="btn-up"   class="mobile-btn"   aria-label="למעלה" ontouchstart="return false">▲</button>
+  <button id="btn-down" class="mobile-btn"   aria-label="למטה"  ontouchstart="return false">▼</button>
+</div>
 
 <!-- Loading screen -->
 <div id="loading-screen">
@@ -1096,6 +1097,11 @@ function showScreen(id) {
     s.classList.remove('active');
   });
   document.getElementById('hud-overlay').classList.add('hidden');
+  // Show mobile controls only during active gameplay
+  const mctrl = document.getElementById('mobile-controls');
+  if (mctrl && !mctrl.classList.contains('hidden')) {
+    mctrl.style.display = (id === 'screen-game') ? 'flex' : 'none';
+  }
   if (id) {
     const el = document.getElementById(id);
     if (el) el.classList.add('active');
@@ -1910,12 +1916,13 @@ class GameScene extends Phaser.Scene {
 
     // Pause music when tab is hidden (prevents double-audio across tabs)
     document.addEventListener('visibilitychange', () => {
+      if (!window._pkAudio) return;
       const a = window._pkAudio;
       if (document.hidden) {
         a.normal.pause();
         a.godmode.pause();
       } else {
-        // Resume only the active track when returning to tab
+        if (!a.muted && _audioUnlocked) {
           if (a.active === 'godmode') a.godmode.play().catch(() => {});
           else a.normal.play().catch(() => {});
         }
@@ -2074,11 +2081,17 @@ document.getElementById('btn-mem-back').addEventListener('click', () => {
     function getScene() {
       return window.game && window.game.scene && window.game.scene.scenes.find(s => s.sys.isActive());
     }
+    function handleBtn(dir) {
+      const sc = getScene();
+      if (sc && sc.switchLane) sc.switchLane(dir);
+    }
     if (btnUp) {
-      btnUp.addEventListener('touchstart', e => { e.preventDefault(); const sc = getScene(); if (sc) sc.switchLane(-1); }, { passive: false });
+      btnUp.addEventListener('touchstart', e => { e.stopPropagation(); e.preventDefault(); handleBtn(-1); }, { passive: false });
+      btnUp.addEventListener('pointerdown', e => { e.stopPropagation(); handleBtn(-1); });
     }
     if (btnDown) {
-      btnDown.addEventListener('touchstart', e => { e.preventDefault(); const sc = getScene(); if (sc) sc.switchLane(1); }, { passive: false });
+      btnDown.addEventListener('touchstart', e => { e.stopPropagation(); e.preventDefault(); handleBtn(1); }, { passive: false });
+      btnDown.addEventListener('pointerdown', e => { e.stopPropagation(); handleBtn(1); });
     }
   }
   document.addEventListener('DOMContentLoaded', wireButtons);
