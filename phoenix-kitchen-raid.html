@@ -894,7 +894,7 @@ html, body {
   <span class="portrait-toast-text">Best in landscape — try rotating!</span>
   <button id="portrait-dismiss" aria-label="dismiss">✕</button>
 </div>
-<a href="index.html" class="hub-back">🎮 All Games</a>
+<a href="index.html" class="hub-back" id="hub-back-link">🎮 All Games</a>
 <div class="lang-toggle"><button class="lang-btn" id="lang-en" onclick="setLang('en')">EN</button><button class="lang-btn active" id="lang-he" onclick="setLang('he')">עב</button></div>
 
 
@@ -1097,11 +1097,8 @@ function showScreen(id) {
     s.classList.remove('active');
   });
   document.getElementById('hud-overlay').classList.add('hidden');
-  // Show mobile controls only during active gameplay
   const mctrl = document.getElementById('mobile-controls');
-  if (mctrl && !mctrl.classList.contains('hidden')) {
-    mctrl.style.display = (id === 'screen-game') ? 'flex' : 'none';
-  }
+  if (mctrl) mctrl.style.display = 'none';
   if (id) {
     const el = document.getElementById(id);
     if (el) el.classList.add('active');
@@ -1111,6 +1108,8 @@ function showScreen(id) {
 function showHUD() {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('hud-overlay').classList.remove('hidden');
+  const mctrl = document.getElementById('mobile-controls');
+  if (mctrl && window.matchMedia('(pointer: coarse)').matches) mctrl.style.display = 'flex';
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1134,14 +1133,15 @@ window.updateHUD = function(state) {
   livesEl.textContent = livesStr;
 
   const bfEl = document.getElementById('hud-bf');
+  const _bhS = STRINGS[window._pkLang] || STRINGS.he;
   if (state.bfActive) {
-    bfEl.textContent = '✨ אכול כפי יכולתך ' + Math.ceil(state.bfTimer) + 'ש';
+    bfEl.textContent = _bhS.hudBfActive(Math.ceil(state.bfTimer));
     bfEl.className = 'hud-bf active';
   } else if (state.streak >= 7) {
-    bfEl.textContent = '🔥 ' + state.streak + '/10 ברצף — אכול כפי יכולתך בקרוב!';
+    bfEl.textContent = _bhS.hudBfSoon(state.streak);
     bfEl.className = 'hud-bf active';
   } else {
-    bfEl.textContent = '🐾 10 ברצף → אכול כפי יכולתך';
+    bfEl.textContent = _bhS.hudBfReady;
     bfEl.className = 'hud-bf';
   }
 };
@@ -1278,7 +1278,8 @@ class GameScene extends Phaser.Scene {
     laneGuides.fillStyle(0x8B6340, 0.06);
     laneGuides.fillRect(0, 415, W, 75);
     // Lane labels (right side, subtle)
-    [{ y: 248, t: '▲ גבוה' }, { y: 360, t: '● אמצע' }, { y: 432, t: '▼ נמוך' }].forEach(l => {
+    const _Sl = STRINGS[window._pkLang] || STRINGS.he;
+    [{ y: 248, t: _Sl.zoneHigh }, { y: 360, t: _Sl.zoneMid }, { y: 432, t: _Sl.zoneLow }].forEach(l => {
       this.add.text(W - 10, l.y, l.t, {
         fontSize: '11px', fontFamily: 'Nunito, sans-serif', color: '#ffffff',
       }).setAlpha(0.30).setDepth(2).setOrigin(1, 0.5);
@@ -1380,7 +1381,8 @@ class GameScene extends Phaser.Scene {
 
     this.zoneThresholds = [0, 500, 1500, 3000];
     this.zoneKeys       = ['bg_kitchen', 'bg_livingroom', 'bg_garden', 'bg_party'];
-    this.zoneNames      = ['Kitchen', 'Living Room', 'Back Garden', '🍕 Pizza Party!'];
+    const _Sz = STRINGS[window._pkLang] || STRINGS.he;
+    this.zoneNames = _Sz.zoneNames || ['Kitchen', 'Living Room', 'Back Garden', '🍕 Pizza Party!'];
 
     // ── Phoenix idle bob ──
     this.tweens.add({
@@ -1486,10 +1488,10 @@ class GameScene extends Phaser.Scene {
       item.setScale(fitScale);
 
       // Tight physics body — only the bottom 60% of the sprite
-      const bw = item.displayWidth  * 0.65;
-      const bh = item.displayHeight * 0.60;
+      const bw = item.width  * 0.65;
+      const bh = item.height * 0.60;
       item.body.setSize(bw, bh);
-      item.body.setOffset((item.width - bw / fitScale) / 2, item.height - bh / fitScale);
+      item.body.setOffset(item.width * 0.175, item.height * 0.40);
 
       // ── Obstacle visuals — red tint, glow, warning icon, danger strip ──
       item.setTint(0xFF8888);       // red tint: visually distinct from food
@@ -1532,7 +1534,9 @@ class GameScene extends Phaser.Scene {
   // ── Callbacks ───────────────────────────────────────────
   onCollectFood(phoenix, food) {
     if (!this.gameActive) return;
+    if (!food || !food.active) return;
     const fx = food.x, fy = food.y;
+    this.tweens.getTweensOf(food).forEach(tw => tw.stop());
     food.destroy();
 
     const points = 8 * this.combo;
@@ -1555,6 +1559,7 @@ class GameScene extends Phaser.Scene {
       scaleX: 1.1, scaleY: 0.78,
       duration: 75,
       yoyo: true,
+      overwrite: true,
     });
   }
 
@@ -1616,7 +1621,8 @@ class GameScene extends Phaser.Scene {
     if (window._pkAudio) window._pkAudio.setTempo(200);
 
     // Big flash announcement
-    const gm = this.add.text(this.W/2, this.H/2 - 40, '✨ אכול כפי יכולתך! 🍕', {
+    const _gmTxt = (STRINGS[window._pkLang] || STRINGS.he).godModeText;
+    const gm = this.add.text(this.W/2, this.H/2 - 40, _gmTxt, {
       fontSize: '38px', fontFamily: 'Playfair Display, serif',
       color: '#FFD700', stroke: '#000', strokeThickness: 5,
     }).setDepth(22).setOrigin(0.5);
@@ -1725,6 +1731,7 @@ class GameScene extends Phaser.Scene {
     // ── Cull food off-screen (miss penalty) ──
     this.foods.getChildren().slice().forEach(food => {
       if (food.x < -120) {
+        this.tweens.getTweensOf(food).forEach(tw => tw.stop());
         food.destroy();
         // Miss penalty: always reset streak and show feedback
         this.streak = 0;
@@ -1732,7 +1739,8 @@ class GameScene extends Phaser.Scene {
           this.combo = 1;
           this.comboTimer = 0;
         }
-        const miss = this.add.text(160, this.H / 2, 'החמצה! ×1', {
+        const _missT = ((STRINGS[window._pkLang] || STRINGS.he).missText || 'Miss!') + ' ×1';
+        const miss = this.add.text(160, this.H / 2, _missT, {
           fontSize: '22px', fontFamily: 'Nunito, sans-serif',
           color: '#ff6666', stroke: '#000', strokeThickness: 3,
         }).setDepth(20).setOrigin(0.5);
@@ -1853,17 +1861,19 @@ class GameScene extends Phaser.Scene {
   // ── Game music (Lyria AI generated) ──────────────────────────
   initAudio() {
     if (window._pkAudio) {
-      // Singleton — just re-point scene and re-register M-key
       window._pkAudio.scene = this;
+      if (window._pkAudio.active === 'godmode') window._pkAudio.setTempo(140);
       const mKeyR = this.input.keyboard.addKey('M');
-      mKeyR.on('down', () => {
+      if (window._pkAudio._mKeyHandler) mKeyR.off('down', window._pkAudio._mKeyHandler);
+      window._pkAudio._mKeyHandler = () => {
         const a = window._pkAudio;
         a.muted = !a.muted;
         a.normal.muted = a.muted;
         a.godmode.muted = a.muted;
         const btn = document.getElementById('btn-mute');
         if (btn) { btn.textContent = a.muted ? '🔇' : '🔊'; btn.classList.toggle('muted', a.muted); }
-      });
+      };
+      mKeyR.on('down', window._pkAudio._mKeyHandler);
       return;
     }
 
@@ -2041,7 +2051,6 @@ document.getElementById('btn-mem-back').addEventListener('click', () => {
   window.addEventListener('resize', scaleGameWrap);
   window.addEventListener('orientationchange', () => setTimeout(scaleGameWrap, 300));
   document.addEventListener('DOMContentLoaded', scaleGameWrap);
-  scaleGameWrap();
 
   // Portrait soft toast — show as a hint, not a blocker
   (function() {
@@ -2095,14 +2104,20 @@ document.getElementById('btn-mem-back').addEventListener('click', () => {
     }
     if (btnUp) {
       btnUp.addEventListener('touchstart', e => { e.stopPropagation(); e.preventDefault(); handleBtn(-1); }, { passive: false });
-      btnUp.addEventListener('pointerdown', e => { e.stopPropagation(); handleBtn(-1); });
     }
     if (btnDown) {
       btnDown.addEventListener('touchstart', e => { e.stopPropagation(); e.preventDefault(); handleBtn(1); }, { passive: false });
-      btnDown.addEventListener('pointerdown', e => { e.stopPropagation(); handleBtn(1); });
     }
   }
   document.addEventListener('DOMContentLoaded', wireButtons);
+})();
+
+// Hub link — pause audio if navigating away mid-game
+(function(){
+  var hl=document.getElementById('hub-back-link');
+  if(hl) hl.addEventListener('click',function(){
+    if(window._pkAudio){window._pkAudio.normal.pause();window._pkAudio.godmode.pause();}
+  });
 })();
 
 // Mute button
@@ -2158,6 +2173,8 @@ const STRINGS = {
     zoneLow:     '▼ נמוך',
     zoneMid:     '● אמצע',
     zoneHigh:    '▲ גבוה',
+    zoneNames:   ['מטבח','סלון','חצר','🍕 מסיבת פיצה!'],
+    portraitWarn:'כדאי לסובב לרוחב!',
     godModeText: '✨ אכול כפי יכולתך! 🍕',
     missText:    'החמצה!',
     stories: [
@@ -2215,6 +2232,8 @@ const STRINGS = {
     zoneLow:     '▼ Low',
     zoneMid:     '● Mid',
     zoneHigh:    '▲ High',
+    zoneNames:   ['Kitchen','Living Room','Back Garden','🍕 Pizza Party!'],
+    portraitWarn:'Best in landscape — try rotating!',
     godModeText: '✨ All You Can Eat! 🍕',
     missText:    'Miss!',
     stories: [
@@ -2261,6 +2280,8 @@ function updateAllText() {
   // Loading
   const loadTxt = document.querySelector('.loading-text');
   if (loadTxt) loadTxt.textContent = S.loading;
+  const portraitTxt = document.querySelector('.portrait-toast-text');
+  if (portraitTxt && S.portraitWarn) portraitTxt.textContent = S.portraitWarn;
   // Menu
   const menuPresents = document.querySelector('.menu-subtitle-top');
   if (menuPresents) menuPresents.textContent = S.menuPresents;
@@ -2359,13 +2380,14 @@ document.addEventListener('DOMContentLoaded', () => {
     `background-image: url(${ASSETS['ph_selfie']}); background-size: cover; background-position: center top;`;
 
   // Memorial photo grid
+  const _caps = (STRINGS[window._pkLang] || STRINGS.he).memPhotoCaptions;
   const memPhotos = [
-    { key: 'ph_table', caption: 'עיניים על השולחן. תמיד. גם כשישנה.' },
-    { key: 'ph_kid',   caption: 'עם הילדים — אחרי שאכלה את הפיצה שלהם.' },
-    { key: 'ph_nap',   caption: 'מנוחה מכובדת אחרי יום עמוס של פשיטות.' },
-    { key: 'ph_walk',  caption: 'הסיור היומי — בעיקר סביב פחי האשפה.' },
-    { key: 'ph_toy',   caption: 'כשאין אוכל בנמצא, גם צעצוע יכול להתגלגל.' },
-    { key: 'ph_eyes',  caption: 'הפרצוף שמנטרל כל כעס תוך שלוש שניות.' },
+    { key: 'ph_table', caption: _caps[0] },
+    { key: 'ph_kid',   caption: _caps[1] },
+    { key: 'ph_nap',   caption: _caps[2] },
+    { key: 'ph_walk',  caption: _caps[3] },
+    { key: 'ph_toy',   caption: _caps[4] },
+    { key: 'ph_eyes',  caption: _caps[5] },
   ];
   const grid = document.getElementById('mem-photo-grid');
   memPhotos.forEach(({ key, caption }) => {
