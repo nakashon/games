@@ -2,7 +2,10 @@
 <html lang="he" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>פיניקס מציגה: פשיטה על המטבח 🐾</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -51,6 +54,10 @@ html, body {
   z-index: 10;
   display: none;
   flex-direction: column;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
 }
 .screen.active { display: flex; }
 
@@ -204,7 +211,7 @@ html, body {
 
 .menu-controls-hint {
   position: absolute;
-  bottom: 14px;
+  bottom: calc(14px + env(safe-area-inset-bottom, 0px));
   left: 50%;
   transform: translateX(-50%);
   z-index: 2;
@@ -401,7 +408,7 @@ html, body {
 
 /* ── MUTE BUTTON ── */
 #btn-mute {
-  position: fixed; bottom: 18px; left: 18px; z-index: 9999;
+  position: fixed; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); left: calc(18px + env(safe-area-inset-left, 0px)); z-index: 9999;
   background: rgba(20,10,5,0.75); border: 1.5px solid rgba(212,169,106,0.45);
   color: #D4A96A; font-size: 18px; width: 38px; height: 38px;
   border-radius: 50%; cursor: pointer; display: flex; align-items: center;
@@ -775,7 +782,7 @@ html, body {
 #portrait-warn {
   display: none;
   position: fixed;
-  bottom: 24px;
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
   left: 50%;
   transform: translateX(-50%) translateY(0);
   z-index: 9999;
@@ -818,11 +825,29 @@ html, body {
 }
 #portrait-dismiss:hover { color: #D4A96A; }
 
+/* ── Version badge (corner, all screens) ── */
+#version-badge {
+  position: fixed;
+  bottom: calc(4px + env(safe-area-inset-bottom, 0px));
+  right: calc(8px + env(safe-area-inset-right, 0px));
+  z-index: 9999;
+  font-family: 'Nunito', monospace, sans-serif;
+  font-size: 10px;
+  color: rgba(212,169,106,0.55);
+  background: rgba(5,2,1,0.45);
+  padding: 2px 8px;
+  border-radius: 8px;
+  pointer-events: none;
+  letter-spacing: 0.4px;
+  user-select: none;
+}
+
 
 /* ── Landscape mobile compact layout (short viewport) ── */
 @media (max-height: 520px) and (pointer: coarse) {
 
   /* Menu screen */
+  #screen-menu { justify-content: center; }
   .menu-content { padding: 0 20px 12px; }
   .menu-subtitle-top { font-size: 12px; letter-spacing: 4px; margin-bottom: 0; }
   .menu-title { font-size: 38px; line-height: 1; margin-bottom: 6px; }
@@ -930,6 +955,9 @@ html, body {
 
 <!-- Mute button — outside game-wrap so it's visible on all screens -->
 <button id="btn-mute" title="השתק / הפעל">🔊</button>
+
+<!-- Version badge — visible on all screens to verify deployed build -->
+<div id="version-badge">v0.4.0 · golden-bone+shield</div>
 
 <!-- Mobile tap controls — outside game-wrap to avoid Phaser canvas event capture -->
 <div id="mobile-controls" class="hidden">
@@ -1080,6 +1108,15 @@ if (!Array.prototype.findLastIndex) {
 }
 
 // ═══════════════════════════════════════════════════════════════
+// VERSION
+// ═══════════════════════════════════════════════════════════════
+window.PK_VERSION = 'v0.4.0';
+window.PK_FEATURES = ['golden-bone', 'combo-shield', 'ios-landscape-fix'];
+console.log('%c🐾 Phoenix Kitchen Raid ' + window.PK_VERSION,
+  'color:#FFD700;font-weight:bold;font-size:14px;',
+  '\nFeatures:', window.PK_FEATURES.join(', '));
+
+// ═══════════════════════════════════════════════════════════════
 // UTILITIES
 // ═══════════════════════════════════════════════════════════════
 function getHighScore() {
@@ -1126,10 +1163,12 @@ window.updateHUD = function(state) {
   else if (state.combo >= 2) combo.classList.add('x2');
 
   const livesEl = document.getElementById('hud-lives');
+  const maxLives = state.maxLives || 3;
   let livesStr = '';
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < maxLives; i++) {
     livesStr += i < state.lives ? '🦴' : '🩶';
   }
+  if (state.shieldActive) livesStr += ' 🛡️';
   livesEl.textContent = livesStr;
 
   const bfEl = document.getElementById('hud-bf');
@@ -1361,6 +1400,8 @@ class GameScene extends Phaser.Scene {
     // ── Game state ──
     this.score        = 0;
     this.lives        = 3;
+    this.maxLives     = 3;
+    this.LIVES_CAP    = 4;
     this.combo        = 1;
     this.comboTimer   = 0;
     this.speed        = 280;
@@ -1372,6 +1413,12 @@ class GameScene extends Phaser.Scene {
     this.bfTimer      = 0;
     this.bfAura       = null;
     this.streak       = 0;
+    // Golden bone (extra life pickup)
+    this.goldenTimer  = Phaser.Math.FloatBetween(20, 30);  // first one a bit sooner
+    // Combo Shield — earned by surviving full AYCE without missing any food
+    this.aaceMissed   = false;
+    this.shieldActive = false;
+    this.shieldRing   = null;
     this.nextMilestone = 1000;
     this.inFlash      = false;
     this.spawnTimer   = 0;
@@ -1537,7 +1584,9 @@ class GameScene extends Phaser.Scene {
     if (!this.gameActive) return;
     if (!food || !food.active) return;
     const fx = food.x, fy = food.y;
+    const wasGolden = !!food._golden;
     this.tweens.getTweensOf(food).forEach(tw => tw.stop());
+    if (food._sparkle) { food._sparkle.destroy(); food._sparkle = null; }
     food.destroy();
 
     const points = 8 * this.combo;
@@ -1555,6 +1604,31 @@ class GameScene extends Phaser.Scene {
     this.particles.setPosition(fx, fy);
     this.particles.explode(10);
 
+    if (wasGolden) {
+      // +1 life, capped
+      if (this.lives < this.LIVES_CAP) {
+        this.lives++;
+        if (this.lives > this.maxLives) this.maxLives = this.lives;
+      }
+      // Golden burst FX
+      for (let i = 0; i < 14; i++) {
+        const ang = (i / 14) * Math.PI * 2;
+        const spk = this.add.circle(fx, fy, 4, 0xFFD700, 1).setDepth(20);
+        this.tweens.add({ targets: spk,
+          x: fx + Math.cos(ang) * 80, y: fy + Math.sin(ang) * 80,
+          alpha: 0, scale: 0, duration: 700,
+          onComplete: () => spk.destroy() });
+      }
+      const txt = (window._pkLang === 'en') ? '+1 LIFE! 🦴' : '+חיים! 🦴';
+      const lab = this.add.text(fx, fy - 20, txt, {
+        fontSize: '26px', fontFamily: 'Playfair Display, serif',
+        color: '#FFD700', stroke: '#000', strokeThickness: 5,
+      }).setDepth(22).setOrigin(0.5);
+      this.tweens.add({ targets: lab, y: lab.y - 50, alpha: 0, duration: 1200,
+        onComplete: () => lab.destroy() });
+      if (window.pkSfx) window.pkSfx('powerup');
+    }
+
     this.tweens.add({
       targets: phoenix,
       scaleX: 1.1, scaleY: 0.78,
@@ -1569,6 +1643,32 @@ class GameScene extends Phaser.Scene {
     if (obstacle._danger) { obstacle._danger.destroy(); obstacle._danger = null; }
     if (obstacle._glow)   { obstacle._glow.destroy();   obstacle._glow   = null; }
     if (obstacle._warn)   { obstacle._warn.destroy();   obstacle._warn   = null; }
+
+    // ── Combo Shield: absorb the hit, no life lost ──
+    if (this.shieldActive) {
+      this.shieldActive = false;
+      if (this.shieldRing) { this.shieldRing.destroy(); this.shieldRing = null; }
+      obstacle.destroy();
+      // Visual: golden shockwave
+      const sx = phoenix.x, sy = phoenix.y - 50;
+      const ring = this.add.circle(sx, sy, 30, 0xFFD700, 0).setStrokeStyle(4, 0xFFD700, 0.9).setDepth(19);
+      this.tweens.add({ targets: ring, scale: 4, alpha: 0, duration: 520,
+        onComplete: () => ring.destroy() });
+      const lab = this.add.text(sx, sy - 30, (window._pkLang === 'en') ? 'SHIELD!' : 'מגן!', {
+        fontSize: '24px', fontFamily: 'Playfair Display, serif',
+        color: '#FFD700', stroke: '#000', strokeThickness: 4,
+      }).setDepth(22).setOrigin(0.5);
+      this.tweens.add({ targets: lab, y: lab.y - 40, alpha: 0, duration: 900,
+        onComplete: () => lab.destroy() });
+      if (window.pkSfx) window.pkSfx('powerup');
+      // Brief iframes so the same obstacle can't double-hit the same frame
+      this.invincible = true;
+      this.invincibleTimer = 0.8;
+      // Shield absorbs the lifehit but still breaks combo (consistent with hit)
+      this.combo = 1;
+      this.streak = 0;
+      return;
+    }
 
     // Crash sound
     if (window.pkSfx) window.pkSfx('hit');
@@ -1612,6 +1712,7 @@ class GameScene extends Phaser.Scene {
     if (this.bfActive || !this.gameActive) return;
     this.bfActive = true;
     this.bfTimer  = 6.0;
+    this.aaceMissed = false;  // tracking for Combo Shield reward
     // Keep running on all fours — just add visual FX (no texture swap, no flat gold tint)
     this.phoenix.setTint(0xFFF3B0);  // warm cream highlight, not gold statue
 
@@ -1632,6 +1733,72 @@ class GameScene extends Phaser.Scene {
     if (this.bfAura) this.bfAura.destroy();
     this.bfAura = this.add.circle(this.phoenix.x, this.phoenix.y - 68, 78, 0xFFD700, 0.16).setDepth(4);
     this.tweens.add({ targets: this.bfAura, alpha: { from: 0.16, to: 0.03 }, duration: 420, yoyo: true, repeat: -1 });
+  }
+
+  // ── Combo Shield ─────────────────────────────────────────
+  activateShield() {
+    if (this.shieldActive || !this.gameActive) return;
+    this.shieldActive = true;
+    if (this.shieldRing) this.shieldRing.destroy();
+    this.shieldRing = this.add.circle(this.phoenix.x, this.phoenix.y - 50, 58, 0xFFD700, 0)
+      .setStrokeStyle(3, 0xFFD700, 0.75).setDepth(4);
+    this.tweens.add({ targets: this.shieldRing,
+      alpha: { from: 0.95, to: 0.45 }, scale: { from: 1, to: 1.08 },
+      duration: 600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+
+    const lab = this.add.text(this.W/2, this.H/2 - 20,
+      (window._pkLang === 'en') ? '🛡️ COMBO SHIELD!' : '🛡️ מגן קומבו!', {
+      fontSize: '32px', fontFamily: 'Playfair Display, serif',
+      color: '#FFD700', stroke: '#000', strokeThickness: 5,
+    }).setDepth(22).setOrigin(0.5);
+    this.tweens.add({ targets: lab, y: lab.y - 50, alpha: 0, duration: 1500,
+      onComplete: () => lab.destroy() });
+    if (window.pkSfx) window.pkSfx('powerup');
+  }
+
+  // ── Golden Bone (extra life pickup) ──────────────────────
+  spawnGoldenBone() {
+    if (!this.gameActive) return;
+    if (this.lives >= this.LIVES_CAP) return;  // skip if already full
+    // Don't spawn if one is already on the field
+    const existing = this.foods.getChildren().some(f => f._golden);
+    if (existing) return;
+
+    const laneIdx = Phaser.Math.Between(0, 2);
+    const spawnY = this.LANES[laneIdx] - 24;
+    const item = this.foods.create(this.W + 60, spawnY, 'food_bone');
+    item.setScale(0.95).setOrigin(0.5, 0.5).setDepth(4);
+    item.setTint(0xFFE066);
+    item.body.setAllowGravity(false);
+    item.body.setVelocityX(-this.speed);
+    item._golden = true;
+
+    // Bigger bobbing float so it stands out
+    this.tweens.add({
+      targets: item, y: '-=22',
+      duration: 420, yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
+    });
+    // Rotation wiggle
+    this.tweens.add({
+      targets: item, angle: { from: -10, to: 10 },
+      duration: 600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
+    });
+
+    // Sparkle particle trail
+    try {
+      const sparkle = this.add.particles(0, 0, 'food_bone', {
+        follow: item,
+        scale:    { start: 0.18, end: 0 },
+        alpha:    { start: 0.9, end: 0 },
+        speed:    { min: 10, max: 40 },
+        lifespan: 480,
+        frequency: 80,
+        tint: 0xFFD700,
+        blendMode: 'ADD',
+        depth: 3,
+      });
+      item._sparkle = sparkle;
+    } catch(e) {}
   }
 
   // ── Zone transitions ────────────────────────────────────
@@ -1696,6 +1863,13 @@ class GameScene extends Phaser.Scene {
     if (this.bfAura) { this.bfAura.destroy(); this.bfAura = null; }
     if (this.bfActive && window._pkAudio) window._pkAudio.setTempo(140);
     this.bfActive = false;
+    // Clean up Combo Shield
+    if (this.shieldRing) { this.shieldRing.destroy(); this.shieldRing = null; }
+    this.shieldActive = false;
+    // Clean up any golden bone sparkles
+    this.foods.getChildren().forEach(f => {
+      if (f._sparkle) { f._sparkle.destroy(); f._sparkle = null; }
+    });
     // Clean up obstacle extras
     this.obstacles.getChildren().forEach(o => {
       if (o._danger) { o._danger.destroy(); o._danger = null; }
@@ -1733,9 +1907,14 @@ class GameScene extends Phaser.Scene {
     this.foods.getChildren().slice().forEach(food => {
       if (food.x < -120) {
         this.tweens.getTweensOf(food).forEach(tw => tw.stop());
+        if (food._sparkle) { food._sparkle.destroy(); food._sparkle = null; }
+        const wasGolden = !!food._golden;
         food.destroy();
+        // Golden bones missed = no penalty (it's a bonus, not a trap)
+        if (wasGolden) return;
         // Miss penalty: always reset streak and show feedback
         this.streak = 0;
+        if (this.bfActive) this.aaceMissed = true;
         if (this.combo > 1) {
           this.combo = 1;
           this.comboTimer = 0;
@@ -1793,6 +1972,10 @@ class GameScene extends Phaser.Scene {
         if (this.bfParticles) this.bfParticles.stop();
         if (this.bfAura) { this.bfAura.destroy(); this.bfAura = null; }
         if (window._pkAudio) window._pkAudio.setTempo(140);
+        // ── Combo Shield reward — perfect AYCE (no missed food) ──
+        if (!this.aaceMissed && !this.shieldActive) {
+          this.activateShield();
+        }
       }
     }
 
@@ -1840,6 +2023,18 @@ class GameScene extends Phaser.Scene {
 
     // ── Power-up spawn removed — God Mode triggers automatically via streak ──
 
+    // ── Golden Bone spawner — rare extra-life pickup ──
+    this.goldenTimer -= dt;
+    if (this.goldenTimer <= 0) {
+      this.spawnGoldenBone();
+      this.goldenTimer = Phaser.Math.FloatBetween(25, 35);
+    }
+
+    // ── Shield ring follow ──
+    if (this.shieldRing && this.shieldActive) {
+      this.shieldRing.setPosition(this.phoenix.x, this.phoenix.y - 50);
+    }
+
     // ── Zone + milestone ──
     this.checkZone();
     this.checkMilestone();
@@ -1852,10 +2047,12 @@ class GameScene extends Phaser.Scene {
     window.updateHUD({
       score:    this.score,
       lives:    this.lives,
+      maxLives: this.maxLives,
       combo:    this.combo,
       streak:   this.streak,
       bfActive: this.bfActive,
       bfTimer:  this.bfTimer,
+      shieldActive: this.shieldActive,
     });
   }
 
@@ -1980,6 +2177,24 @@ window.pkSfx = function(type) {
         g2.gain.exponentialRampToValueAtTime(0.001, ctx2.currentTime + 0.38);
         o2.start(); o2.stop(ctx2.currentTime + 0.38);
       } catch(e) {} }, 90);
+    } else if (type === 'powerup') {
+      // Bright two-note chime — shield earned / golden bone collected
+      o.type = 'sine'; o.frequency.setValueAtTime(660, ctx.currentTime);
+      o.frequency.exponentialRampToValueAtTime(990, ctx.currentTime + 0.18);
+      g.gain.setValueAtTime(0.001, ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.13, ctx.currentTime + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.45);
+      o.start(); o.stop(ctx.currentTime + 0.45);
+      setTimeout(() => { try {
+        const ctx2 = window._pkSfxCtx;
+        const o2 = ctx2.createOscillator(), g2 = ctx2.createGain();
+        o2.connect(g2); g2.connect(ctx2.destination);
+        o2.type = 'sine'; o2.frequency.value = 1320;
+        g2.gain.setValueAtTime(0.001, ctx2.currentTime);
+        g2.gain.exponentialRampToValueAtTime(0.09, ctx2.currentTime + 0.02);
+        g2.gain.exponentialRampToValueAtTime(0.001, ctx2.currentTime + 0.4);
+        o2.start(); o2.stop(ctx2.currentTime + 0.4);
+      } catch(e) {} }, 140);
     }
   } catch(e) {}
 };
